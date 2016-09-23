@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
@@ -8,49 +9,63 @@
             name="audio"
             type="com.vk.sdk.api.model.VKApiAudio" />
 
-        <import type="android.text.format.DateUtils"/>
+        <import type="android.text.format.DateUtils" />
 
     </data>
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
         android:orientation="vertical"
-        android:paddingTop="12dp"
         android:paddingBottom="12dp"
+        android:paddingEnd="0dp"
         android:paddingLeft="16dp"
-        android:paddingRight="16dp">
+        android:paddingRight="0dp"
+        android:paddingStart="16dp"
+        android:paddingTop="12dp">
 
         <TextView
             android:id="@+id/audio_title"
             style="@style/TextAppearance.AppCompat.Subhead"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_toLeftOf="@+id/audio_duration"
-            android:layout_toStartOf="@id/audio_duration"
             android:text="@{audio.title}"
             tools:text="To The Moon and Back" />
 
         <TextView
             android:id="@+id/audio_artist"
             style="@style/TextAppearance.AppCompat.Caption"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/audio_title"
-            android:layout_toLeftOf="@+id/audio_duration"
-            android:layout_toStartOf="@id/audio_duration"
             android:text="@{audio.artist}"
             tools:text="Tennyson" />
 
         <TextView
             android:id="@+id/audio_duration"
+            style="@style/TextAppearance.AppCompat.Caption"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
+            android:layout_alignTop="@id/audio_artist"
+            android:layout_toEndOf="@id/audio_artist"
+            android:layout_toRightOf="@id/audio_artist"
+            android:text='@{" • " + DateUtils.formatElapsedTime(audio.duration)}'
+            tools:text=" • 3:47" />
+
+        <com.mikepenz.iconics.view.IconicsImageView
+            android:id="@+id/audio_options"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
-            android:text="@{DateUtils.formatElapsedTime(audio.duration)}"
-            tools:text="3:47" />
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:padding="8dp"
+            app:iiv_color="@color/md_grey_700"
+            app:iiv_icon="gmd-more-vert" />
 
     </RelativeLayout>
 

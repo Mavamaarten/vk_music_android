@@ -19,11 +19,12 @@ import com.vk.sdk.api.VKApi;
 import com.vk.sdk.api.VKError;
 import com.vk.sdk.api.VKRequest;
 import com.vk.sdk.api.VKResponse;
+import com.vk.sdk.api.model.VKApiAudio;
 import com.vk.sdk.api.model.VkAudioArray;
 
 import javax.inject.Inject;
 
-public class MyAudioFragment extends BaseFragment {
+public class MyAudioFragment extends BaseFragment implements VkAudioAdapter.VkAudioAdapterListener {
     @Inject VKAccessToken accessToken;
 
     private FragmentMyAudioBinding binding;
@@ -38,7 +39,7 @@ public class MyAudioFragment extends BaseFragment {
         super.onCreate(savedInstanceState);
 
         audioArray = new VkAudioArray();
-        adapter = new VkAudioAdapter(audioArray);
+        adapter = new VkAudioAdapter(audioArray, this);
     }
 
     private void loadData() {
@@ -76,5 +77,16 @@ public class MyAudioFragment extends BaseFragment {
     @Override
     protected void inject() {
         ((VkApplication) getActivity().getApplication()).getUserComponent().inject(this);
+    }
+
+    @Override
+    public void onAudioClicked(VKApiAudio audio, int position) {
+        // TODO play track
+    }
+
+    @Override
+    public boolean onAudioMenuItemClicked(VKApiAudio audio, int position, int menuItemId) {
+        // TODO handle popup menu item click
+        return true;
     }
 }
