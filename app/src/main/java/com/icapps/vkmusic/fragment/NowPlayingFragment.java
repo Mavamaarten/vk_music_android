@@ -2,6 +2,7 @@ package com.icapps.vkmusic.fragment;
 
 import android.content.Context;
 import android.databinding.DataBindingUtil;
+import android.databinding.ObservableInt;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,10 +23,11 @@ import rx.schedulers.Schedulers;
 
 
 public class NowPlayingFragment extends BaseFragment {
-    @Inject
-    AlbumArtProvider albumArtProvider;
+    @Inject AlbumArtProvider albumArtProvider;
 
-    FragmentNowPlayingBinding binding;
+    public final ObservableInt playbackPosition = new ObservableInt(0);
+
+    private FragmentNowPlayingBinding binding;
     private PlaybackControlsListener listener;
 
     public NowPlayingFragment() {
@@ -34,10 +36,12 @@ public class NowPlayingFragment extends BaseFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_now_playing, container, false);
+        binding.setPlaybackPosition(playbackPosition.get());
 
         binding.next.setOnClickListener(v -> listener.onNextClicked());
         binding.previous.setOnClickListener(v -> listener.onPreviousClicked());
         binding.playPause.setOnClickListener(v -> listener.onPlayPauseClicked());
+        binding.playPauseTop.setOnClickListener(v -> listener.onPlayPauseClicked());
 
         return binding.getRoot();
     }
@@ -72,6 +76,10 @@ public class NowPlayingFragment extends BaseFragment {
                 }, throwable -> {
                     // TODO Uhhh do nothing?
                 });
+    }
+
+    public void setPlaybackPosition(int playbackPosition){
+        this.playbackPosition.set(playbackPosition);
     }
 
     @Override

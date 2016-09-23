@@ -29,9 +29,6 @@ import org.json.JSONException;
 
 import javax.inject.Inject;
 
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
-
 public class MainActivity extends BaseActivity implements NowPlayingFragment.PlaybackControlsListener, MyAudioFragment.AudioInteractionListener {
     @Inject VKAccessToken accessToken;
     @Inject VKApiUser user;
@@ -142,14 +139,5 @@ public class MainActivity extends BaseActivity implements NowPlayingFragment.Pla
     @Override
     public void onAudioClicked(VKApiAudio audio) {
         ((NowPlayingFragment) getSupportFragmentManager().findFragmentByTag(NowPlayingFragment.class.getName())).setCurrentAudio(audio);
-
-        albumArtProvider.getAlbumArtUrl(audio.artist + " " + audio.title)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(url -> {
-                    System.out.println(url);
-                }, throwable -> {
-                    System.out.println(throwable);
-                });
     }
 }
