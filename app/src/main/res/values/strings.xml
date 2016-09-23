@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">vk Music</string>
+    <string name="log_in">Log in</string>
+    <string name="login_intro_text">Please log in to use vk Music</string>
+</resources>
