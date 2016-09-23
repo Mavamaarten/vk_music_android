@@ -28,6 +28,8 @@
             android:label="ServiceActivity"
             android:theme="@style/VK.Transparent" />
 
+        <service android:name=".service.MusicService"/>
+
     </application>
 
 </manifest>

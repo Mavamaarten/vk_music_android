@@ -10,7 +10,7 @@
 
         <variable
             name="playbackPosition"
-            type="Integer" />
+            type="int" />
 
         <import type="android.text.format.DateUtils" />
 

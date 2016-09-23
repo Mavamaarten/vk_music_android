@@ -1,8 +1,12 @@
 package com.icapps.vkmusic.activity;
 
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.support.design.widget.Snackbar;
 import android.view.View;
 
 import com.icapps.vkmusic.R;
@@ -12,6 +16,7 @@ import com.icapps.vkmusic.databinding.ActivityMainBinding;
 import com.icapps.vkmusic.fragment.MyAudioFragment;
 import com.icapps.vkmusic.fragment.NowPlayingFragment;
 import com.icapps.vkmusic.model.albumart.AlbumArtProvider;
+import com.icapps.vkmusic.service.MusicService;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
 import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
@@ -29,12 +34,29 @@ import org.json.JSONException;
 
 import javax.inject.Inject;
 
-public class MainActivity extends BaseActivity implements NowPlayingFragment.PlaybackControlsListener, MyAudioFragment.AudioInteractionListener {
+public class MainActivity extends BaseActivity implements NowPlayingFragment.PlaybackControlsListener, MyAudioFragment.AudioInteractionListener, MusicService.MusicServiceListener {
     @Inject VKAccessToken accessToken;
     @Inject VKApiUser user;
     @Inject AlbumArtProvider albumArtProvider;
 
     private ActivityMainBinding binding;
+    private boolean musicServiceBound;
+    private MusicService musicService;
+    private ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            musicService = ((MusicService.MusicServiceBinder) service).getService();
+            musicService.addMusicServiceListener(MainActivity.this);
+            musicServiceBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            musicServiceBound = false;
+            musicService = null;
+        }
+    };
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +71,16 @@ public class MainActivity extends BaseActivity implements NowPlayingFragment.Pla
                 .replace(R.id.content_main, new MyAudioFragment(), MyAudioFragment.class.getName())
                 .replace(R.id.content_slidingpanel, new NowPlayingFragment(), NowPlayingFragment.class.getName())
                 .commit();
+
+        Intent intent = new Intent(this, MusicService.class);
+        bindService(intent, serviceConnection, BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        musicService.removeMusicServiceListener(this);
+        unbindService(serviceConnection);
     }
 
     private void createNavigationDrawer() {
@@ -138,6 +170,25 @@ public class MainActivity extends BaseActivity implements NowPlayingFragment.Pla
 
     @Override
     public void onAudioClicked(VKApiAudio audio) {
+        if(!musicServiceBound){
+            return;
+        }
+        musicService.playAudio(audio);
         ((NowPlayingFragment) getSupportFragmentManager().findFragmentByTag(NowPlayingFragment.class.getName())).setCurrentAudio(audio);
+    }
+
+    @Override
+    public void onMusicServiceException(Exception ex) {
+        Snackbar.make(binding.getRoot(), "Music service exception! " + ex, Snackbar.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onPlaybackStateChanged(MusicService.PlaybackState state) {
+        Snackbar.make(binding.getRoot(), state.name(), Snackbar.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onPlaybackPositionChanged(int position) {
+        ((NowPlayingFragment) getSupportFragmentManager().findFragmentByTag(NowPlayingFragment.class.getName())).setPlaybackPosition(position);
     }
 }
