@@ -1,0 +1,79 @@
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context="com.icapps.vkmusic.fragment.NowPlayingFragment">
+
+        <RelativeLayout
+            android:id="@+id/now_playing_header"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/bottom_sheet_height">
+
+            <ImageView
+                android:id="@+id/album_small"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_centerVertical="true"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"
+                android:background="@color/md_grey_300" />
+
+            <TextView
+                android:id="@+id/title"
+                style="@style/Base.TextAppearance.AppCompat.Subhead"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignTop="@id/album_small"
+                android:layout_marginTop="4dp"
+                android:layout_toEndOf="@+id/album_small"
+                android:layout_toRightOf="@+id/album_small"
+                tools:text="To the moon and back" />
+
+            <TextView
+                android:id="@+id/artist"
+                style="@style/Base.TextAppearance.AppCompat.Caption"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignLeft="@id/title"
+                android:layout_alignStart="@id/title"
+                android:layout_below="@id/title"
+                android:layout_marginTop="4dp"
+                android:textSize="14sp"
+                tools:text="Tennyson" />
+
+        </RelativeLayout>
+
+        <View
+            android:id="@+id/separator"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_below="@id/now_playing_header"
+            android:background="@color/md_grey_300" />
+
+        <ImageView
+            android:id="@+id/album_large"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@+id/now_playing_controls"
+            android:layout_below="@id/separator"
+            android:background="@color/md_grey_200" />
+
+        <RelativeLayout
+            android:id="@+id/now_playing_controls"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/bottom_sheet_height"
+            android:layout_alignParentBottom="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:text="Controls here" />
+
+        </RelativeLayout>
+
+    </RelativeLayout>
+
+</layout>

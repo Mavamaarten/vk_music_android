@@ -5,7 +5,6 @@ import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
-import android.view.View;
 
 import com.icapps.vkmusic.R;
 import com.icapps.vkmusic.VkApplication;
@@ -38,12 +37,7 @@ public class LoginActivity extends BaseActivity {
         }
 
         ActivityLoginBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_login);
-        binding.login.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                VKSdk.login(LoginActivity.this, "audio", "offline");
-            }
-        });
+        binding.login.setOnClickListener(v -> VKSdk.login(LoginActivity.this, "audio", "offline"));
     }
 
     @Override
@@ -51,7 +45,6 @@ public class LoginActivity extends BaseActivity {
 
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     protected void onActivityResult(final int requestCode, int resultCode, Intent data) {
         if (!VKSdk.onActivityResult(requestCode, resultCode, data, new VKCallback<VKAccessToken>() {
@@ -72,8 +65,9 @@ public class LoginActivity extends BaseActivity {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void createUserComponentAndLaunchMainActivity(final VKAccessToken token){
-        VKApi.users().get(VKParameters.from(VKApiConst.FIELDS, "photo")).executeWithListener(new VKRequest.VKRequestListener() {
+        VKApi.users().get(VKParameters.from(VKApiConst.FIELDS, "photo", "photo_medium")).executeWithListener(new VKRequest.VKRequestListener() {
             @Override
             public void onComplete(VKResponse response) {
                 VKList<VKApiUser> users = (VKList<VKApiUser>) response.parsedModel;

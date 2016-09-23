@@ -10,16 +10,15 @@ import com.icapps.vkmusic.VkApplication;
 import com.icapps.vkmusic.base.BaseActivity;
 import com.icapps.vkmusic.databinding.ActivityMainBinding;
 import com.icapps.vkmusic.fragment.MyAudioFragment;
+import com.icapps.vkmusic.fragment.NowPlayingFragment;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
 import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
-import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.DrawerBuilder;
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
 import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
 import com.mikepenz.materialdrawer.model.ProfileSettingDrawerItem;
 import com.mikepenz.materialdrawer.model.SectionDrawerItem;
-import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 import com.vk.sdk.VKAccessToken;
 import com.vk.sdk.VKSdk;
 import com.vk.sdk.api.model.VKApiUser;
@@ -27,10 +26,8 @@ import com.vk.sdk.api.model.VKApiUser;
 import javax.inject.Inject;
 
 public class MainActivity extends BaseActivity {
-    @Inject
-    VKAccessToken accessToken;
-    @Inject
-    VKApiUser user;
+    @Inject VKAccessToken accessToken;
+    @Inject VKApiUser user;
 
     private ActivityMainBinding binding;
 
@@ -45,6 +42,7 @@ public class MainActivity extends BaseActivity {
 
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.content_main, new MyAudioFragment(), MyAudioFragment.class.getName())
+                .replace(R.id.content_slidingpanel, new NowPlayingFragment(), NowPlayingFragment.class.getName())
                 .commit();
     }
 
@@ -59,31 +57,43 @@ public class MainActivity extends BaseActivity {
 
                         new ProfileSettingDrawerItem()
                                 .withName(getString(R.string.log_out))
-                                .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
-                                    @Override
-                                    public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
-                                        onLogoutClicked(view);
-                                        return true;
-                                    }
+                                .withOnDrawerItemClickListener((view, position, drawerItem) -> {
+                                    onLogoutClicked(view);
+                                    return true;
                                 })
                 )
                 .build();
 
-        PrimaryDrawerItem homeItem = new PrimaryDrawerItem()
+        PrimaryDrawerItem aboutItem = new PrimaryDrawerItem()
                 .withIdentifier(1)
-                .withName(R.string.home)
-                .withIcon(GoogleMaterial.Icon.gmd_home);
+                .withName(getString(R.string.about))
+                .withIcon(GoogleMaterial.Icon.gmd_info);
 
         PrimaryDrawerItem settingsItem = new PrimaryDrawerItem()
-                .withIdentifier(1)
+                .withIdentifier(2)
                 .withName(R.string.settings)
-                .withIcon(GoogleMaterial.Icon.gmd_settings)
+                .withIcon(GoogleMaterial.Icon.gmd_settings);
+
+        PrimaryDrawerItem nowPlayingItem = new PrimaryDrawerItem()
+                .withIdentifier(3)
+                .withName("Now playing")
+                .withIcon(GoogleMaterial.Icon.gmd_playlist_play);
+
+        PrimaryDrawerItem myAudioItem = new PrimaryDrawerItem()
+                .withIdentifier(4)
+                .withName("My audio")
+                .withIcon(GoogleMaterial.Icon.gmd_music_note)
                 .withSetSelected(true);
 
         new DrawerBuilder().withActivity(this)
                 .withToolbar(binding.toolbar)
                 .withAccountHeader(header)
-                .addDrawerItems(homeItem, settingsItem, new SectionDrawerItem().withName(R.string.playlists))
+                .addDrawerItems(
+                        myAudioItem,
+                        nowPlayingItem,
+                        new SectionDrawerItem().withName(getString(R.string.playlists))
+                )
+                .addStickyDrawerItems(settingsItem, aboutItem)
                 .build();
     }
 
