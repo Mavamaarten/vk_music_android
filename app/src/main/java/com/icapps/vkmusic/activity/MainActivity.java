@@ -9,6 +9,7 @@ import com.icapps.vkmusic.R;
 import com.icapps.vkmusic.VkApplication;
 import com.icapps.vkmusic.base.BaseActivity;
 import com.icapps.vkmusic.databinding.ActivityMainBinding;
+import com.icapps.vkmusic.fragment.MyAudioFragment;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
 import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
@@ -41,6 +42,10 @@ public class MainActivity extends BaseActivity {
         setSupportActionBar(binding.toolbar);
 
         createNavigationDrawer();
+
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.content_main, new MyAudioFragment(), MyAudioFragment.class.getName())
+                .commit();
     }
 
     private void createNavigationDrawer() {
@@ -67,8 +72,7 @@ public class MainActivity extends BaseActivity {
         PrimaryDrawerItem homeItem = new PrimaryDrawerItem()
                 .withIdentifier(1)
                 .withName(R.string.home)
-                .withIcon(GoogleMaterial.Icon.gmd_home)
-                .withSetSelected(true);
+                .withIcon(GoogleMaterial.Icon.gmd_home);
 
         PrimaryDrawerItem settingsItem = new PrimaryDrawerItem()
                 .withIdentifier(1)

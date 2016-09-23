@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="audio"
+            type="com.vk.sdk.api.model.VKApiAudio" />
+
+    </data>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <TextView
+            android:id="@+id/audio_title"
+            style="@style/TextAppearance.AppCompat.Subhead"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toLeftOf="@+id/audio_duration"
+            android:layout_toStartOf="@id/audio_duration"
+            android:text="@{audio.title}"
+            tools:text="To The Moon and Back" />
+
+        <TextView
+            android:id="@+id/audio_artist"
+            style="@style/TextAppearance.AppCompat.Caption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/audio_title"
+            android:layout_toLeftOf="@+id/audio_duration"
+            android:layout_toStartOf="@id/audio_duration"
+            android:text="@{audio.artist}"
+            tools:text="Tennyson" />
+
+        <TextView
+            android:id="@+id/audio_duration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            tools:text="3:47" />
+
+    </RelativeLayout>
+
+</layout>
