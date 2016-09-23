@@ -2,4 +2,11 @@
     <string name="app_name">vk Music</string>
     <string name="log_in">Log in</string>
     <string name="login_intro_text">Please log in to use vk Music</string>
+    <string name="log_out">Log out</string>
+    <string name="playlists">Playlists</string>
+    <string name="home">Home</string>
+    <string name="settings">Settings</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

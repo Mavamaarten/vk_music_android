@@ -14,7 +14,14 @@ import com.icapps.vkmusic.databinding.ActivityLoginBinding;
 import com.vk.sdk.VKAccessToken;
 import com.vk.sdk.VKCallback;
 import com.vk.sdk.VKSdk;
+import com.vk.sdk.api.VKApi;
+import com.vk.sdk.api.VKApiConst;
 import com.vk.sdk.api.VKError;
+import com.vk.sdk.api.VKParameters;
+import com.vk.sdk.api.VKRequest;
+import com.vk.sdk.api.VKResponse;
+import com.vk.sdk.api.model.VKApiUser;
+import com.vk.sdk.api.model.VKList;
 
 /**
  * Created by maartenvangiel on 23/09/16.
@@ -44,11 +51,12 @@ public class LoginActivity extends BaseActivity {
 
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    protected void onActivityResult(final int requestCode, int resultCode, Intent data) {
         if (!VKSdk.onActivityResult(requestCode, resultCode, data, new VKCallback<VKAccessToken>() {
             @Override
-            public void onResult(VKAccessToken res) {
+            public void onResult(final VKAccessToken res) {
                 createUserComponentAndLaunchMainActivity(res);
             }
 
@@ -64,12 +72,19 @@ public class LoginActivity extends BaseActivity {
         }
     }
 
-    private void createUserComponentAndLaunchMainActivity(VKAccessToken token){
-        ((VkApplication) getApplication()).createUserComponent(token);
+    private void createUserComponentAndLaunchMainActivity(final VKAccessToken token){
+        VKApi.users().get(VKParameters.from(VKApiConst.FIELDS, "photo")).executeWithListener(new VKRequest.VKRequestListener() {
+            @Override
+            public void onComplete(VKResponse response) {
+                VKList<VKApiUser> users = (VKList<VKApiUser>) response.parsedModel;
 
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-        finish();
+                ((VkApplication) getApplication()).createUserComponent(token, users.get(0));
+
+                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                finish();
+            }
+        });
     }
 }

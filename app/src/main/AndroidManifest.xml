@@ -19,7 +19,9 @@
             </intent-filter>
         </activity>
 
-        <activity android:name="com.icapps.vkmusic.activity.MainActivity" />
+        <activity
+            android:name="com.icapps.vkmusic.activity.MainActivity"
+            android:theme="@style/AppThemeNoActionbar" />
 
         <activity
             android:name="com.vk.sdk.VKServiceActivity"
