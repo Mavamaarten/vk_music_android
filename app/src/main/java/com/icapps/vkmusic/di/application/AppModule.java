@@ -3,6 +3,9 @@ package com.icapps.vkmusic.di.application;
 import android.app.Application;
 import android.content.Context;
 
+import com.icapps.vkmusic.model.albumart.AlbumArtProvider;
+import com.icapps.vkmusic.model.albumart.BingAlbumArtProvider;
+
 import javax.inject.Singleton;
 
 import dagger.Module;
@@ -24,5 +27,11 @@ public class AppModule {
     @Singleton
     Context provideApplicationContext() {
         return application;
+    }
+
+    @Provides
+    @Singleton
+    AlbumArtProvider provideAlbumArtProvider(){
+        return new BingAlbumArtProvider();
     }
 }

@@ -67,7 +67,7 @@ public class LoginActivity extends BaseActivity {
 
     @SuppressWarnings("unchecked")
     private void createUserComponentAndLaunchMainActivity(final VKAccessToken token){
-        VKApi.users().get(VKParameters.from(VKApiConst.FIELDS, "photo", "photo_medium")).executeWithListener(new VKRequest.VKRequestListener() {
+        VKApi.users().get(VKParameters.from(VKApiConst.FIELDS, "photo_big")).executeWithListener(new VKRequest.VKRequestListener() {
             @Override
             public void onComplete(VKResponse response) {
                 VKList<VKApiUser> users = (VKList<VKApiUser>) response.parsedModel;

@@ -11,6 +11,7 @@ import com.icapps.vkmusic.base.BaseActivity;
 import com.icapps.vkmusic.databinding.ActivityMainBinding;
 import com.icapps.vkmusic.fragment.MyAudioFragment;
 import com.icapps.vkmusic.fragment.NowPlayingFragment;
+import com.icapps.vkmusic.model.albumart.AlbumArtProvider;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
 import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
@@ -21,13 +22,20 @@ import com.mikepenz.materialdrawer.model.ProfileSettingDrawerItem;
 import com.mikepenz.materialdrawer.model.SectionDrawerItem;
 import com.vk.sdk.VKAccessToken;
 import com.vk.sdk.VKSdk;
+import com.vk.sdk.api.model.VKApiAudio;
 import com.vk.sdk.api.model.VKApiUser;
+
+import org.json.JSONException;
 
 import javax.inject.Inject;
 
-public class MainActivity extends BaseActivity {
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
+
+public class MainActivity extends BaseActivity implements NowPlayingFragment.PlaybackControlsListener, MyAudioFragment.AudioInteractionListener {
     @Inject VKAccessToken accessToken;
     @Inject VKApiUser user;
+    @Inject AlbumArtProvider albumArtProvider;
 
     private ActivityMainBinding binding;
 
@@ -47,13 +55,19 @@ public class MainActivity extends BaseActivity {
     }
 
     private void createNavigationDrawer() {
+        String photo = "https://vk.com/images/camera_100.png";
+        try {
+            photo = user.fields.getString("photo_big");
+        } catch (JSONException ignored) {
+        }
+
         AccountHeader header = new AccountHeaderBuilder()
                 .withActivity(this)
                 .withHeaderBackground(R.drawable.header)
                 .addProfiles(
                         new ProfileDrawerItem()
                                 .withEmail(user.first_name)
-                                .withIcon(user.photo.getImageForDimension(64, 64)),
+                                .withIcon(photo),
 
                         new ProfileSettingDrawerItem()
                                 .withName(getString(R.string.log_out))
@@ -110,4 +124,32 @@ public class MainActivity extends BaseActivity {
         finish();
     }
 
+    @Override
+    public void onPreviousClicked() {
+
+    }
+
+    @Override
+    public void onNextClicked() {
+
+    }
+
+    @Override
+    public void onPlayPauseClicked() {
+
+    }
+
+    @Override
+    public void onAudioClicked(VKApiAudio audio) {
+        ((NowPlayingFragment) getSupportFragmentManager().findFragmentByTag(NowPlayingFragment.class.getName())).setCurrentAudio(audio);
+
+        albumArtProvider.getAlbumArtUrl(audio.artist + " " + audio.title)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(url -> {
+                    System.out.println(url);
+                }, throwable -> {
+                    System.out.println(throwable);
+                });
+    }
 }

@@ -1,5 +1,6 @@
 package com.icapps.vkmusic.fragment;
 
+import android.content.Context;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -30,6 +31,7 @@ public class MyAudioFragment extends BaseFragment implements VkAudioAdapter.VkAu
     private FragmentMyAudioBinding binding;
     private VkAudioAdapter adapter;
     private VkAudioArray audioArray;
+    private AudioInteractionListener listener;
 
     public MyAudioFragment() {
     }
@@ -80,13 +82,26 @@ public class MyAudioFragment extends BaseFragment implements VkAudioAdapter.VkAu
     }
 
     @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+
+        if(context instanceof AudioInteractionListener){
+            listener = (AudioInteractionListener) context;
+        }
+    }
+
+    @Override
     public void onAudioClicked(VKApiAudio audio, int position) {
-        // TODO play track
+        listener.onAudioClicked(audio);
     }
 
     @Override
     public boolean onAudioMenuItemClicked(VKApiAudio audio, int position, int menuItemId) {
         // TODO handle popup menu item click
         return true;
+    }
+
+    public interface AudioInteractionListener{
+        void onAudioClicked(VKApiAudio audio);
     }
 }

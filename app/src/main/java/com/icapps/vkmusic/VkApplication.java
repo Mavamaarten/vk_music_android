@@ -50,10 +50,9 @@ public class VkApplication extends Application {
 
         DrawerImageLoader.init(new AbstractDrawerImageLoader() {
             @Override
-            public void set(ImageView imageView, Uri uri, Drawable placeholder) {
+            public void set(ImageView imageView, Uri uri, Drawable placeholder, String tag) {
                 Glide.with(imageView.getContext())
                         .load(uri)
-                        .placeholder(placeholder)
                         .into(imageView);
             }
         });

@@ -1,5 +1,14 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="currentAudio"
+            type="com.vk.sdk.api.model.VKApiAudio" />
+
+    </data>
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -26,9 +35,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_alignTop="@id/album_small"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="2dp"
                 android:layout_toEndOf="@+id/album_small"
                 android:layout_toRightOf="@+id/album_small"
+                android:text="@{currentAudio.title}"
                 tools:text="To the moon and back" />
 
             <TextView
@@ -39,8 +49,8 @@
                 android:layout_alignLeft="@id/title"
                 android:layout_alignStart="@id/title"
                 android:layout_below="@id/title"
-                android:layout_marginTop="4dp"
                 android:textSize="14sp"
+                android:text="@{currentAudio.artist}"
                 tools:text="Tennyson" />
 
         </RelativeLayout>
@@ -60,17 +70,57 @@
             android:layout_below="@id/separator"
             android:background="@color/md_grey_200" />
 
+        <android.support.v7.widget.AppCompatSeekBar
+            android:id="@+id/playback_position"
+            android:layout_width="match_parent"
+            android:layout_height="32dp"
+            android:layout_below="@id/album_large"
+            android:layout_marginLeft="-16dp"
+            android:layout_marginRight="-16dp"
+            android:layout_marginTop="-16dp" />
+
         <RelativeLayout
             android:id="@+id/now_playing_controls"
             android:layout_width="match_parent"
             android:layout_height="@dimen/bottom_sheet_height"
             android:layout_alignParentBottom="true">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+            <com.mikepenz.iconics.view.IconicsImageView
+                android:id="@+id/previous"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_centerVertical="true"
+                android:layout_toLeftOf="@+id/play_pause"
+                android:layout_toStartOf="@id/play_pause"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:padding="8dp"
+                app:iiv_color="@color/colorAccent"
+                app:iiv_icon="gmd-skip-previous" />
+
+            <com.mikepenz.iconics.view.IconicsImageView
+                android:id="@+id/play_pause"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
                 android:layout_centerInParent="true"
-                android:text="Controls here" />
+                android:layout_margin="12dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                app:iiv_color="@color/colorAccent"
+                app:iiv_icon="gmd-play-circle-filled" />
+
+            <com.mikepenz.iconics.view.IconicsImageView
+                android:id="@+id/next"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_centerVertical="true"
+                android:layout_toEndOf="@id/play_pause"
+                android:layout_toRightOf="@+id/play_pause"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:padding="8dp"
+                app:iiv_color="@color/colorAccent"
+                app:iiv_icon="gmd-skip-next" />
 
         </RelativeLayout>
 
