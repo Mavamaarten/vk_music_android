@@ -1,18 +1,24 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools">
 
     <data>
 
         <variable
             name="currentAudio"
-            type="com.vk.sdk.api.model.VKApiAudio" />
+            type="com.vk.sdk.api.model.VKApiAudio"/>
 
         <variable
             name="playbackPosition"
-            type="int" />
+            type="int"/>
 
-        <import type="android.text.format.DateUtils" />
+        <variable
+            name="playbackState"
+            type="com.icapps.vkmusic.service.MusicService.PlaybackState"/>
+
+        <import type="android.text.format.DateUtils"/>
+
+        <import type="com.icapps.vkmusic.service.MusicService.PlaybackState"/>
 
     </data>
 
@@ -33,7 +39,7 @@
                 android:layout_centerVertical="true"
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"
-                android:background="@color/md_grey_300" />
+                android:background="@color/md_grey_300"/>
 
             <TextView
                 android:id="@+id/title"
@@ -49,7 +55,7 @@
                 android:ellipsize="end"
                 android:lines="1"
                 android:text="@{currentAudio.title}"
-                tools:text="To the moon and back" />
+                tools:text="To the moon and back"/>
 
             <TextView
                 android:id="@+id/artist"
@@ -65,9 +71,9 @@
                 android:lines="1"
                 android:text="@{currentAudio.artist}"
                 android:textSize="14sp"
-                tools:text="Tennyson" />
+                tools:text="Tennyson"/>
 
-            <com.mikepenz.iconics.view.IconicsImageView
+            <ImageView
                 android:id="@+id/play_pause_top"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
@@ -76,9 +82,8 @@
                 android:layout_centerVertical="true"
                 android:layout_marginEnd="16dp"
                 android:layout_marginRight="16dp"
-                android:padding="5dp"
-                app:iiv_color="@android:color/black"
-                app:iiv_icon="gmd-pause" />
+                android:padding="2dp"
+                android:src="@{ playbackState == PlaybackState.PLAYING ? @drawable/ic_pause : @drawable/ic_play }"/>
 
         </RelativeLayout>
 
@@ -87,7 +92,7 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_below="@id/now_playing_header"
-            android:background="@color/md_grey_300" />
+            android:background="@color/md_grey_300"/>
 
         <ImageView
             android:id="@+id/album_large"
@@ -95,7 +100,7 @@
             android:layout_height="match_parent"
             android:layout_above="@+id/now_playing_controls"
             android:layout_below="@id/separator"
-            android:background="@color/md_grey_200" />
+            android:background="@color/md_grey_200"/>
 
         <TextView
             android:id="@+id/playback_position_label"
@@ -108,7 +113,7 @@
             android:text="@{DateUtils.formatElapsedTime(playbackPosition)}"
             android:textColor="@android:color/white"
             android:textSize="15sp"
-            tools:text="0:00" />
+            tools:text="0:00"/>
 
         <TextView
             android:id="@+id/playback_remaining_label"
@@ -123,7 +128,7 @@
             android:text='@{"-" + DateUtils.formatElapsedTime(currentAudio.duration - playbackPosition)}'
             android:textColor="@android:color/white"
             android:textSize="15sp"
-            tools:text="-3:47" />
+            tools:text="-3:47"/>
 
         <android.support.v7.widget.AppCompatSeekBar
             android:id="@+id/playback_position"
@@ -133,7 +138,8 @@
             android:layout_marginLeft="-16dp"
             android:layout_marginRight="-16dp"
             android:layout_marginTop="-16dp"
-            android:max="@{currentAudio.duration}" />
+            android:max="@{currentAudio.duration}"
+            android:progress="@{playbackPosition}"/>
 
         <RelativeLayout
             android:id="@+id/now_playing_controls"
@@ -152,18 +158,18 @@
                 android:clickable="true"
                 android:padding="8dp"
                 app:iiv_color="@color/colorAccent"
-                app:iiv_icon="gmd-skip-previous" />
+                app:iiv_icon="gmd-skip-previous"/>
 
-            <com.mikepenz.iconics.view.IconicsImageView
+            <ImageView
                 android:id="@+id/play_pause"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:layout_width="58dp"
+                android:layout_height="58dp"
                 android:layout_centerInParent="true"
                 android:layout_margin="12dp"
                 android:background="?attr/selectableItemBackground"
                 android:clickable="true"
-                app:iiv_color="@color/colorAccent"
-                app:iiv_icon="gmd-play-circle-filled" />
+                android:tint="@color/colorAccent"
+                android:src="@{ playbackState == PlaybackState.PLAYING ? @drawable/ic_pause_circle : @drawable/ic_play_circle}"/>
 
             <com.mikepenz.iconics.view.IconicsImageView
                 android:id="@+id/next"
@@ -176,7 +182,7 @@
                 android:clickable="true"
                 android:padding="8dp"
                 app:iiv_color="@color/colorAccent"
-                app:iiv_icon="gmd-skip-next" />
+                app:iiv_icon="gmd-skip-next"/>
 
         </RelativeLayout>
 

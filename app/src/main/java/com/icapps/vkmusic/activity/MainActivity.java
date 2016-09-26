@@ -169,7 +169,18 @@ public class MainActivity extends BaseActivity implements NowPlayingFragment.Pla
 
     @Override
     public void onPlayPauseClicked() {
-
+        switch(musicService.getState()){
+            case STOPPED:
+                break;
+            case PREPARING:
+                break;
+            case PLAYING:
+                musicService.pause();
+                break;
+            case PAUSED:
+                musicService.resume();
+                break;
+        }
     }
 
     @Override
@@ -178,7 +189,7 @@ public class MainActivity extends BaseActivity implements NowPlayingFragment.Pla
             return;
         }
         musicService.playAudio(audio);
-        ((NowPlayingFragment) getSupportFragmentManager().findFragmentByTag(NowPlayingFragment.class.getName())).setCurrentAudio(audio);
+        getNowPlayingFragment().setCurrentAudio(audio);
     }
 
     @Override
@@ -188,11 +199,20 @@ public class MainActivity extends BaseActivity implements NowPlayingFragment.Pla
 
     @Override
     public void onPlaybackStateChanged(MusicService.PlaybackState state) {
-        Snackbar.make(binding.getRoot(), state.name(), Snackbar.LENGTH_LONG).show();
+        getNowPlayingFragment().setPlaybackState(state);
     }
 
     @Override
     public void onPlaybackPositionChanged(int position) {
-        ((NowPlayingFragment) getSupportFragmentManager().findFragmentByTag(NowPlayingFragment.class.getName())).setPlaybackPosition(position);
+       getNowPlayingFragment().setPlaybackPosition(position);
+    }
+
+    @Override
+    public void onCurrentAudioChanged(VKApiAudio audio) {
+        getNowPlayingFragment().setCurrentAudio(audio);
+    }
+
+    private NowPlayingFragment getNowPlayingFragment(){
+        return  ((NowPlayingFragment) getSupportFragmentManager().findFragmentByTag(NowPlayingFragment.class.getName()));
     }
 }

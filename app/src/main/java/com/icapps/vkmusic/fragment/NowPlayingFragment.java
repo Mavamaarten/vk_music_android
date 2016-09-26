@@ -13,6 +13,7 @@ import com.icapps.vkmusic.VkApplication;
 import com.icapps.vkmusic.base.BaseFragment;
 import com.icapps.vkmusic.databinding.FragmentNowPlayingBinding;
 import com.icapps.vkmusic.model.albumart.AlbumArtProvider;
+import com.icapps.vkmusic.service.MusicService;
 import com.vk.sdk.api.model.VKApiAudio;
 
 import javax.inject.Inject;
@@ -23,8 +24,6 @@ import rx.schedulers.Schedulers;
 
 public class NowPlayingFragment extends BaseFragment {
     @Inject AlbumArtProvider albumArtProvider;
-
-    public int playbackPosition;
 
     private FragmentNowPlayingBinding binding;
     private PlaybackControlsListener listener;
@@ -40,6 +39,7 @@ public class NowPlayingFragment extends BaseFragment {
         binding.previous.setOnClickListener(v -> listener.onPreviousClicked());
         binding.playPause.setOnClickListener(v -> listener.onPlayPauseClicked());
         binding.playPauseTop.setOnClickListener(v -> listener.onPlayPauseClicked());
+        binding.playbackPosition.
 
         return binding.getRoot();
     }
@@ -78,6 +78,10 @@ public class NowPlayingFragment extends BaseFragment {
 
     public void setPlaybackPosition(int playbackPosition){
         binding.setPlaybackPosition(playbackPosition);
+    }
+
+    public void setPlaybackState(MusicService.PlaybackState playbackState){
+        binding.setPlaybackState(playbackState);
     }
 
     @Override

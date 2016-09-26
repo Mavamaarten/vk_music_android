@@ -19,10 +19,11 @@ import java.util.List;
  */
 public class MusicService extends Service implements MediaPlayer.OnPreparedListener {
     private final IBinder binder = new MusicServiceBinder();
-    private MediaPlayer mediaPlayer;
     private final List<MusicServiceListener> listeners = new ArrayList<>();
+    private MediaPlayer mediaPlayer;
     private Thread playbackPositionThread;
     private PlaybackState state = PlaybackState.STOPPED;
+    private VKApiAudio currentAudio;
 
     @Override
     public void onCreate() {
@@ -54,6 +55,10 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     public void addMusicServiceListener(MusicServiceListener listener) {
         listeners.add(listener);
+        listener.onPlaybackStateChanged(state);
+        if (currentAudio != null) {
+            listener.onCurrentAudioChanged(currentAudio);
+        }
     }
 
     public void removeMusicServiceListener(MusicServiceListener listener) {
@@ -61,17 +66,22 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     }
 
     public void playAudio(VKApiAudio audio) {
-        System.out.println("PlayAudio " + audio);
         try {
             mediaPlayer.reset();
             mediaPlayer.setDataSource(audio.url);
             mediaPlayer.prepareAsync();
+            currentAudio = audio;
             setState(PlaybackState.PREPARING);
         } catch (IOException e) {
             for (MusicServiceListener listener : listeners) {
                 listener.onMusicServiceException(e);
             }
+            setState(PlaybackState.STOPPED);
         }
+    }
+
+    public PlaybackState getState() {
+        return state;
     }
 
     @Nullable
@@ -89,12 +99,23 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         playbackPositionThread.start();
     }
 
+    public void pause() {
+        if (state == PlaybackState.PLAYING) {
+            mediaPlayer.pause();
+            setState(PlaybackState.PAUSED);
+        }
+    }
+
+    public void resume() {
+        mediaPlayer.start();
+        setState(PlaybackState.PLAYING);
+    }
+
     public class PlaybackPositionThread extends Thread {
         @Override
         public void run() {
             while (!interrupted() && mediaPlayer != null) {
                 for (MusicServiceListener listener : listeners) {
-                    System.out.println(listeners.size());
                     listener.onPlaybackPositionChanged(mediaPlayer.getCurrentPosition() / 1000);
                 }
                 try {
@@ -124,5 +145,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         void onPlaybackStateChanged(PlaybackState state);
 
         void onPlaybackPositionChanged(int position);
+
+        void onCurrentAudioChanged(VKApiAudio audio);
     }
 }
