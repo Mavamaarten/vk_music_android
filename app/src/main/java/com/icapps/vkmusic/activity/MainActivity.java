@@ -200,6 +200,11 @@ public class MainActivity extends BaseActivity implements NowPlayingFragment.Pla
     @Override
     public void onPlaybackStateChanged(MusicService.PlaybackState state) {
         getNowPlayingFragment().setPlaybackState(state);
+        if(musicService.getCurrentAudio() == null){
+            binding.slidinglayout.setPanelHeight(0);
+        } else {
+            binding.slidinglayout.setPanelHeight((int) getResources().getDimension(R.dimen.bottom_sheet_height));
+        }
     }
 
     @Override

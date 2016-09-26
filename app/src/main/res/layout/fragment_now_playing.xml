@@ -68,7 +68,7 @@
                 android:layout_toStartOf="@id/play_pause_top"
                 android:ellipsize="end"
                 android:lines="1"
-                android:text="@{currentAudio.title}"
+                android:text="@{currentAudio == null ? @string/no_track_playing : currentAudio.title}"
                 tools:text="To the moon and back"/>
 
             <TextView

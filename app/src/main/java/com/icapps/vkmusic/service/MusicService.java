@@ -125,7 +125,11 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     @Override
     public void onCompletion(MediaPlayer mp) {
-        // TODO: play next track
+        setState(PlaybackState.STOPPED);
+    }
+
+    public VKApiAudio getCurrentAudio() {
+        return currentAudio;
     }
 
     public class PlaybackPositionThread extends Thread {
