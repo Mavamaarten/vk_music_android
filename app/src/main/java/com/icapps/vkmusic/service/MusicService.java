@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * Created by maartenvangiel on 23/09/16.
  */
-public class MusicService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener {
+public class MusicService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnSeekCompleteListener {
     private final IBinder binder = new MusicServiceBinder();
     private final List<MusicServiceListener> listeners = new ArrayList<>();
     private MediaPlayer mediaPlayer;
@@ -34,6 +34,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         mediaPlayer.setOnPreparedListener(this);
         mediaPlayer.setOnErrorListener(this);
         mediaPlayer.setOnCompletionListener(this);
+        mediaPlayer.setOnSeekCompleteListener(this);
     }
 
     @Override
@@ -97,6 +98,10 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     public void onPrepared(MediaPlayer mp) {
         mp.start();
         setState(PlaybackState.PLAYING);
+        startPlaybackPositionUpdating();
+    }
+
+    public void startPlaybackPositionUpdating(){
         if (playbackPositionThread != null) playbackPositionThread.interrupt();
         playbackPositionThread = new PlaybackPositionThread();
         playbackPositionThread.start();
@@ -132,10 +137,25 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         return currentAudio;
     }
 
+    public void stopPlaybackPositionUpdating(){
+        if(playbackPositionThread != null){
+            playbackPositionThread.interrupt();
+        }
+    }
+
+    public void seek(int position) {
+        mediaPlayer.seekTo(position * 1000);
+    }
+
+    @Override
+    public void onSeekComplete(MediaPlayer mp) {
+        startPlaybackPositionUpdating();
+    }
+
     public class PlaybackPositionThread extends Thread {
         @Override
         public void run() {
-            while (!interrupted() && mediaPlayer != null) {
+            while (!isInterrupted() && mediaPlayer != null) {
                 for (MusicServiceListener listener : listeners) {
                     listener.onPlaybackPositionChanged(mediaPlayer.getCurrentPosition() / 1000);
                 }

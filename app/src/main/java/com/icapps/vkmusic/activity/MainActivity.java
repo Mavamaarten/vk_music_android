@@ -184,6 +184,16 @@ public class MainActivity extends BaseActivity implements NowPlayingFragment.Pla
     }
 
     @Override
+    public void onPlaybackPositionTouch() {
+        musicService.stopPlaybackPositionUpdating();
+    }
+
+    @Override
+    public void onPlaybackPositionChosen(int position) {
+        musicService.seek(position);
+    }
+
+    @Override
     public void onAudioClicked(VKApiAudio audio) {
         if(!musicServiceBound){
             return;

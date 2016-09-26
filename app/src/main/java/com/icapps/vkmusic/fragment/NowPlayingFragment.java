@@ -10,6 +10,7 @@ import android.support.v4.graphics.drawable.DrawableCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.SeekBar;
 
 import com.bumptech.glide.Glide;
 import com.icapps.vkmusic.R;
@@ -48,6 +49,22 @@ public class NowPlayingFragment extends BaseFragment {
         binding.previous.setOnClickListener(v -> listener.onPreviousClicked());
         binding.playPause.setOnClickListener(v -> listener.onPlayPauseClicked());
         binding.playPauseTop.setOnClickListener(v -> listener.onPlayPauseClicked());
+        binding.playbackPosition.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                // Do nothing
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                listener.onPlaybackPositionTouch();
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                listener.onPlaybackPositionChosen(seekBar.getProgress());
+            }
+        });
 
         return binding.getRoot();
     }
@@ -104,5 +121,9 @@ public class NowPlayingFragment extends BaseFragment {
         void onNextClicked();
 
         void onPlayPauseClicked();
+
+        void onPlaybackPositionTouch();
+
+        void onPlaybackPositionChosen(int position);
     }
 }
