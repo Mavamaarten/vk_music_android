@@ -7,6 +7,9 @@ import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.design.widget.Snackbar;
+import android.support.v7.widget.SearchView;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 
 import com.icapps.vkmusic.R;
@@ -15,11 +18,13 @@ import com.icapps.vkmusic.base.BaseActivity;
 import com.icapps.vkmusic.databinding.ActivityMainBinding;
 import com.icapps.vkmusic.fragment.MyAudioFragment;
 import com.icapps.vkmusic.fragment.NowPlayingFragment;
+import com.icapps.vkmusic.fragment.SearchFragment;
 import com.icapps.vkmusic.model.albumart.AlbumArtProvider;
 import com.icapps.vkmusic.service.MusicService;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
 import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
+import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.DrawerBuilder;
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
 import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
@@ -38,6 +43,14 @@ public class MainActivity extends BaseActivity implements NowPlayingFragment.Pla
     @Inject VKAccessToken accessToken;
     @Inject VKApiUser user;
     @Inject AlbumArtProvider albumArtProvider;
+
+    private Menu optionsMenu;
+    private Drawer drawer;
+    private PrimaryDrawerItem searchItem;
+    private PrimaryDrawerItem myAudioItem;
+
+    private MyAudioFragment myAudioFragment;
+    private NowPlayingFragment nowPlayingFragment;
 
     private ActivityMainBinding binding;
     private boolean musicServiceBound;
@@ -66,9 +79,12 @@ public class MainActivity extends BaseActivity implements NowPlayingFragment.Pla
 
         createNavigationDrawer();
 
+        myAudioFragment = new MyAudioFragment();
+        nowPlayingFragment = new NowPlayingFragment();
+
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.content_main, new MyAudioFragment(), MyAudioFragment.class.getName())
-                .replace(R.id.content_slidingpanel, new NowPlayingFragment(), NowPlayingFragment.class.getName())
+                .replace(R.id.content_main, myAudioFragment, MyAudioFragment.class.getName())
+                .replace(R.id.content_slidingpanel, nowPlayingFragment, NowPlayingFragment.class.getName())
                 .commit();
     }
 
@@ -121,23 +137,38 @@ public class MainActivity extends BaseActivity implements NowPlayingFragment.Pla
                 .withName(R.string.settings)
                 .withIcon(GoogleMaterial.Icon.gmd_settings);
 
-        PrimaryDrawerItem nowPlayingItem = new PrimaryDrawerItem()
+        myAudioItem = new PrimaryDrawerItem()
                 .withIdentifier(3)
-                .withName("Now playing")
-                .withIcon(GoogleMaterial.Icon.gmd_playlist_play);
-
-        PrimaryDrawerItem myAudioItem = new PrimaryDrawerItem()
-                .withIdentifier(4)
-                .withName("My audio")
+                .withName(R.string.my_audio)
                 .withIcon(GoogleMaterial.Icon.gmd_music_note)
+                .withOnDrawerItemClickListener((view, position, drawerItem) -> {
+                    onMyAudioSelected();
+                    return true;
+                })
                 .withSetSelected(true);
 
-        new DrawerBuilder().withActivity(this)
+        PrimaryDrawerItem nowPlayingItem = new PrimaryDrawerItem()
+                .withIdentifier(4)
+                .withName(R.string.now_playing)
+                .withIcon(GoogleMaterial.Icon.gmd_playlist_play);
+
+        searchItem = new PrimaryDrawerItem()
+                .withIdentifier(5)
+                .withName(R.string.search)
+                .withIcon(GoogleMaterial.Icon.gmd_search)
+                .withOnDrawerItemClickListener((view, position, drawerItem) -> {
+                    onSearchSelected();
+                    return true;
+                })
+                .withSetSelected(true);
+
+        drawer = new DrawerBuilder().withActivity(this)
                 .withToolbar(binding.toolbar)
                 .withAccountHeader(header)
                 .addDrawerItems(
                         myAudioItem,
                         nowPlayingItem,
+                        searchItem,
                         new SectionDrawerItem().withName(getString(R.string.playlists))
                 )
                 .addStickyDrawerItems(settingsItem, aboutItem)
@@ -147,6 +178,62 @@ public class MainActivity extends BaseActivity implements NowPlayingFragment.Pla
     @Override
     protected void inject() {
         ((VkApplication) getApplication()).getUserComponent().inject(this);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main_toolbar, menu);
+        this.optionsMenu = menu;
+
+        MenuItem searchMenuItem = menu.findItem(R.id.action_search);
+        SearchView searchView = (SearchView) searchMenuItem.getActionView();
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                SearchFragment searchFragment = (SearchFragment) getSupportFragmentManager().findFragmentByTag(SearchFragment.class.getName());
+                if(searchFragment == null){
+                    Bundle arguments = new Bundle();
+                    arguments.putString("query", query);
+
+                    searchFragment = new SearchFragment();
+                    searchFragment.setArguments(arguments);
+
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.content_main, searchFragment, SearchFragment.class.getName())
+                            .commit();
+                } else {
+                    searchFragment.search(query);
+                }
+
+                drawer.setSelection(searchItem, false);
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                return false;
+            }
+        });
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    private void onMyAudioSelected() {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.content_main, myAudioFragment, MyAudioFragment.class.getName())
+                .commit();
+
+        drawer.closeDrawer();
+    }
+
+    private void onSearchSelected(){
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.content_main, new SearchFragment(), SearchFragment.class.getName())
+                .commit();
+
+        drawer.closeDrawer();
+
+        optionsMenu.findItem(R.id.action_search).expandActionView();
     }
 
     public void onLogoutClicked(View sender) {
@@ -169,7 +256,7 @@ public class MainActivity extends BaseActivity implements NowPlayingFragment.Pla
 
     @Override
     public void onPlayPauseClicked() {
-        switch(musicService.getState()){
+        switch (musicService.getState()) {
             case STOPPED:
                 break;
             case PREPARING:
@@ -180,6 +267,15 @@ public class MainActivity extends BaseActivity implements NowPlayingFragment.Pla
             case PAUSED:
                 musicService.resume();
                 break;
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (searchItem.isSelected()) {
+            drawer.setSelection(myAudioItem);
+        } else {
+            super.onBackPressed();
         }
     }
 
@@ -195,11 +291,11 @@ public class MainActivity extends BaseActivity implements NowPlayingFragment.Pla
 
     @Override
     public void onAudioClicked(VKApiAudio audio) {
-        if(!musicServiceBound){
+        if (!musicServiceBound) {
             return;
         }
         musicService.playAudio(audio);
-        getNowPlayingFragment().setCurrentAudio(audio);
+        nowPlayingFragment.setCurrentAudio(audio);
     }
 
     @Override
@@ -209,8 +305,8 @@ public class MainActivity extends BaseActivity implements NowPlayingFragment.Pla
 
     @Override
     public void onPlaybackStateChanged(MusicService.PlaybackState state) {
-        getNowPlayingFragment().setPlaybackState(state);
-        if(musicService.getCurrentAudio() == null){
+        nowPlayingFragment.setPlaybackState(state);
+        if (musicService.getCurrentAudio() == null) {
             binding.slidinglayout.setPanelHeight(0);
         } else {
             binding.slidinglayout.setPanelHeight((int) getResources().getDimension(R.dimen.bottom_sheet_height));
@@ -219,15 +315,11 @@ public class MainActivity extends BaseActivity implements NowPlayingFragment.Pla
 
     @Override
     public void onPlaybackPositionChanged(int position) {
-       getNowPlayingFragment().setPlaybackPosition(position);
+        nowPlayingFragment.setPlaybackPosition(position);
     }
 
     @Override
     public void onCurrentAudioChanged(VKApiAudio audio) {
-        getNowPlayingFragment().setCurrentAudio(audio);
-    }
-
-    private NowPlayingFragment getNowPlayingFragment(){
-        return  ((NowPlayingFragment) getSupportFragmentManager().findFragmentByTag(NowPlayingFragment.class.getName()));
+        nowPlayingFragment.setCurrentAudio(audio);
     }
 }
