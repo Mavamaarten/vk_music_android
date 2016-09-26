@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * Created by maartenvangiel on 23/09/16.
  */
-public class MusicService extends Service implements MediaPlayer.OnPreparedListener {
+public class MusicService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener {
     private final IBinder binder = new MusicServiceBinder();
     private final List<MusicServiceListener> listeners = new ArrayList<>();
     private MediaPlayer mediaPlayer;
@@ -32,6 +32,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         mediaPlayer.setOnPreparedListener(this);
+        mediaPlayer.setOnErrorListener(this);
+        mediaPlayer.setOnCompletionListener(this);
     }
 
     @Override
@@ -51,6 +53,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         for (MusicServiceListener listener : listeners) {
             listener.onPlaybackStateChanged(state);
         }
+        System.out.println(state.name());
     }
 
     public void addMusicServiceListener(MusicServiceListener listener) {
@@ -109,6 +112,20 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     public void resume() {
         mediaPlayer.start();
         setState(PlaybackState.PLAYING);
+    }
+
+    @Override
+    public boolean onError(MediaPlayer mp, int what, int extra) {
+        setState(PlaybackState.STOPPED);
+        for (MusicServiceListener listener : listeners) {
+            listener.onMusicServiceException(new Exception("An exception occurred while playing back your track"));
+        }
+        return false;
+    }
+
+    @Override
+    public void onCompletion(MediaPlayer mp) {
+        // TODO: play next track
     }
 
     public class PlaybackPositionThread extends Thread {

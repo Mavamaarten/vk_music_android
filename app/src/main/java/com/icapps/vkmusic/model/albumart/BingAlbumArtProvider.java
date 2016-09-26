@@ -20,7 +20,7 @@ public class BingAlbumArtProvider implements AlbumArtProvider {
         return Observable.fromCallable(() -> getAlbumArtUrlString(query));
     }
 
-    private String getAlbumArtUrlString(String query) throws IOException {
+    private String getAlbumArtUrlString(String query) throws IOException, NoAlbumArtFoundException {
         URL url;
         url = new URL("http://www.bing.com/?q=" + URLEncoder.encode(query, "UTF-8") + "&scope=images&qft=+filterui:aspect-square");
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
@@ -38,10 +38,18 @@ public class BingAlbumArtProvider implements AlbumArtProvider {
         return ParseImageUrlFromResult(result.toString());
     }
 
-    private String ParseImageUrlFromResult(String result) {
-        if (!result.contains(image_delimiter)) return null;
+    private String ParseImageUrlFromResult(String result) throws NoAlbumArtFoundException {
+        if (!result.contains(image_delimiter)) throw new NoAlbumArtFoundException();
         result = result.split(image_delimiter)[1];
         result = result.substring(0, result.indexOf('"'));
         return result;
+    }
+
+    public class NoAlbumArtFoundException extends Exception{
+
+        @Override
+        public String getMessage() {
+            return "No album art was found";
+        }
     }
 }

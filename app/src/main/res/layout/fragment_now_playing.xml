@@ -20,6 +20,8 @@
 
         <import type="com.icapps.vkmusic.service.MusicService.PlaybackState"/>
 
+        <import type="android.view.View"/>
+
     </data>
 
     <RelativeLayout
@@ -39,7 +41,19 @@
                 android:layout_centerVertical="true"
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"
-                android:background="@color/md_grey_300"/>
+                android:background="@color/md_grey_300"
+                android:scaleType="centerCrop"/>
+
+            <ProgressBar
+                android:id="@+id/preparing_indicator"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_alignLeft="@+id/album_small"
+                android:layout_alignStart="@+id/album_small"
+                android:layout_alignTop="@+id/album_small"
+                android:padding="5dp"
+                android:indeterminate="true"
+                android:visibility="@{playbackState == PlaybackState.PREPARING ? View.VISIBLE : View.GONE}"/>
 
             <TextView
                 android:id="@+id/title"
@@ -100,7 +114,8 @@
             android:layout_height="match_parent"
             android:layout_above="@+id/now_playing_controls"
             android:layout_below="@id/separator"
-            android:background="@color/md_grey_200"/>
+            android:background="@color/md_grey_200"
+            android:scaleType="centerCrop"/>
 
         <TextView
             android:id="@+id/playback_position_label"
@@ -168,8 +183,8 @@
                 android:layout_margin="12dp"
                 android:background="?attr/selectableItemBackground"
                 android:clickable="true"
-                android:tint="@color/colorAccent"
-                android:src="@{ playbackState == PlaybackState.PLAYING ? @drawable/ic_pause_circle : @drawable/ic_play_circle}"/>
+                android:src="@{ playbackState == PlaybackState.PLAYING ? @drawable/ic_pause_circle : @drawable/ic_play_circle}"
+                android:tint="@color/colorAccent"/>
 
             <com.mikepenz.iconics.view.IconicsImageView
                 android:id="@+id/next"
