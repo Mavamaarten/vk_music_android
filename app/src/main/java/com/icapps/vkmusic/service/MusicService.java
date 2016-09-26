@@ -27,9 +27,22 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     @Override
     public void onCreate() {
         super.onCreate();
+        System.out.println("Service started");
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         mediaPlayer.setOnPreparedListener(this);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        System.out.println("Service destroyed");
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        super.onStartCommand(intent, flags, startId);
+        return START_STICKY;
     }
 
     public void setState(PlaybackState state) {
@@ -81,6 +94,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         public void run() {
             while (!interrupted() && mediaPlayer != null) {
                 for (MusicServiceListener listener : listeners) {
+                    System.out.println(listeners.size());
                     listener.onPlaybackPositionChanged(mediaPlayer.getCurrentPosition() / 1000);
                 }
                 try {

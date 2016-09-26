@@ -57,7 +57,6 @@ public class MainActivity extends BaseActivity implements NowPlayingFragment.Pla
         }
     };
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,14 +70,19 @@ public class MainActivity extends BaseActivity implements NowPlayingFragment.Pla
                 .replace(R.id.content_main, new MyAudioFragment(), MyAudioFragment.class.getName())
                 .replace(R.id.content_slidingpanel, new NowPlayingFragment(), NowPlayingFragment.class.getName())
                 .commit();
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
         Intent intent = new Intent(this, MusicService.class);
+        startService(intent);
         bindService(intent, serviceConnection, BIND_AUTO_CREATE);
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
+    protected void onPause() {
+        super.onPause();
         musicService.removeMusicServiceListener(this);
         unbindService(serviceConnection);
     }
