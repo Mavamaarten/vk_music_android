@@ -17,4 +17,7 @@
     <string name="search">Search</string>
     <string name="playback_queue">Playback queue</string>
     <string name="search_results">Search results</string>
+    <string name="clear_queue">Clear queue</string>
+    <string name="tracks_in_queue">%1$d tracks in queue</string>
+    <string name="track_in_queue">1 track in queue</string>
 </resources>

@@ -80,8 +80,9 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     /**
      * Plays a track, and sets the playback queue to the "source" of tracks that was used to initiate the playback
+     *
      * @param audioArray the collection of tracks to be played
-     * @param position the index of the track to play
+     * @param position   the index of the track to play
      */
     public void playAudio(VkAudioArray audioArray, int position) {
         playAudio(audioArray.get(position));
@@ -99,6 +100,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     /**
      * Plays a single track, without setting the playback queue
+     *
      * @param audio the track to be played
      */
     public void playAudio(VKApiAudio audio) {
@@ -123,13 +125,14 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     /**
      * Adds a track as the next track in the queue
      * Removes duplicate/existing instances of the track from the queue
+     *
      * @param audio the track to be added to the queue
      */
     public void addTrackAsNextInQueue(VKApiAudio audio) {
         Iterator<VKApiAudio> iterator = playbackQueue.listIterator();
-        while(iterator.hasNext()){
+        while (iterator.hasNext()) {
             final VKApiAudio a = iterator.next();
-            if(a.id == audio.id) iterator.remove();
+            if (a.id == audio.id) iterator.remove();
         }
 
         playbackQueue.add(Math.min(currentIndex + 1, playbackQueue.size()), audio);
@@ -222,6 +225,13 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     public int getCurrentIndex() {
         return currentIndex;
+    }
+
+    public void clearQueue() {
+        playbackQueue.clear();
+        for (MusicServiceListener listener : listeners) {
+            listener.onPlaybackQueueChanged();
+        }
     }
 
     public class PlaybackPositionThread extends Thread {

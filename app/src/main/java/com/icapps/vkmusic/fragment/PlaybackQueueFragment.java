@@ -45,10 +45,13 @@ public class PlaybackQueueFragment extends BaseMusicFragment implements VkAudioA
 
         binding.rcvAudio.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
         binding.rcvAudio.setAdapter(adapter);
+        binding.clearQueue.setOnClickListener(v -> onClearQueueClicked());
 
         ItemTouchHelper.Callback callback = new ItemTouchHelperCallback(adapter);
         touchHelper = new ItemTouchHelper(callback);
         touchHelper.attachToRecyclerView(binding.rcvAudio);
+
+        updateQueueSizeLabel();
 
         return binding.getRoot();
     }
@@ -59,8 +62,17 @@ public class PlaybackQueueFragment extends BaseMusicFragment implements VkAudioA
     }
 
     public void updatePlaybackQueue() {
-        if (adapter != null) {
+        if (isVisible()) {
             adapter.notifyDataSetChanged();
+            updateQueueSizeLabel();
+        }
+    }
+
+    private void updateQueueSizeLabel(){
+        if(playbackQueue.size() == 1){
+            binding.queueSize.setText(R.string.track_in_queue);
+        } else {
+            binding.queueSize.setText(getString(R.string.tracks_in_queue, playbackQueue.size()));
         }
     }
 
@@ -81,7 +93,7 @@ public class PlaybackQueueFragment extends BaseMusicFragment implements VkAudioA
 
     @Override
     public boolean onAudioMenuItemClicked(final VKApiAudio audio, int position, int menuItemId) {
-        switch(menuItemId){
+        switch (menuItemId) {
             case R.id.action_play:
                 musicService.playAudio(playbackQueue, position);
                 break;
@@ -96,6 +108,10 @@ public class PlaybackQueueFragment extends BaseMusicFragment implements VkAudioA
                 break;
         }
         return true;
+    }
+
+    private void onClearQueueClicked() {
+        musicService.clearQueue();
     }
 
     @Override
