@@ -48,11 +48,10 @@
                 android:id="@+id/preparing_indicator"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:layout_alignLeft="@+id/album_small"
                 android:layout_alignStart="@+id/album_small"
                 android:layout_alignTop="@+id/album_small"
-                android:padding="5dp"
                 android:indeterminate="true"
+                android:padding="5dp"
                 android:visibility="@{playbackState == PlaybackState.PREPARING ? View.VISIBLE : View.GONE}"/>
 
             <TextView
@@ -60,12 +59,10 @@
                 style="@style/Base.TextAppearance.AppCompat.Subhead"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_alignTop="@id/album_small"
+                android:layout_alignTop="@+id/album_small"
                 android:layout_marginTop="2dp"
                 android:layout_toEndOf="@+id/album_small"
-                android:layout_toLeftOf="@+id/play_pause_top"
-                android:layout_toRightOf="@+id/album_small"
-                android:layout_toStartOf="@id/play_pause_top"
+                android:layout_toStartOf="@+id/play_pause_top"
                 android:ellipsize="end"
                 android:lines="1"
                 android:text="@{currentAudio == null ? @string/no_track_playing : currentAudio.title}"
@@ -76,11 +73,9 @@
                 style="@style/Base.TextAppearance.AppCompat.Caption"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_alignLeft="@id/title"
                 android:layout_alignStart="@id/title"
                 android:layout_below="@id/title"
-                android:layout_toLeftOf="@+id/play_pause_top"
-                android:layout_toStartOf="@id/play_pause_top"
+                android:layout_toStartOf="@+id/play_pause_top"
                 android:ellipsize="end"
                 android:lines="1"
                 android:text="@{currentAudio.artist}"
@@ -92,12 +87,10 @@
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"
                 android:layout_marginEnd="16dp"
-                android:layout_marginRight="16dp"
                 android:padding="2dp"
-                android:src="@{ playbackState == PlaybackState.PLAYING ? @drawable/ic_pause : @drawable/ic_play }"/>
+                android:src="@{ (playbackState == PlaybackState.PLAYING || playbackState == PlaybackState.PREPARING) ? @drawable/ic_pause : @drawable/ic_play }"/>
 
         </RelativeLayout>
 
@@ -123,7 +116,6 @@
             android:layout_height="wrap_content"
             android:layout_alignBottom="@+id/album_large"
             android:layout_marginBottom="16dp"
-            android:layout_marginLeft="16dp"
             android:layout_marginStart="16dp"
             android:text="@{DateUtils.formatElapsedTime(playbackPosition)}"
             android:textColor="@android:color/white"
@@ -136,10 +128,8 @@
             android:layout_height="wrap_content"
             android:layout_alignBottom="@+id/album_large"
             android:layout_alignParentEnd="true"
-            android:layout_alignParentRight="true"
             android:layout_marginBottom="16dp"
             android:layout_marginEnd="16dp"
-            android:layout_marginRight="16dp"
             android:text='@{"-" + DateUtils.formatElapsedTime(currentAudio.duration - playbackPosition)}'
             android:textColor="@android:color/white"
             android:textSize="15sp"
@@ -167,8 +157,7 @@
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:layout_centerVertical="true"
-                android:layout_toLeftOf="@+id/play_pause"
-                android:layout_toStartOf="@id/play_pause"
+                android:layout_toStartOf="@+id/play_pause"
                 android:background="?attr/selectableItemBackground"
                 android:clickable="true"
                 android:padding="8dp"
@@ -183,7 +172,7 @@
                 android:layout_margin="12dp"
                 android:background="?attr/selectableItemBackground"
                 android:clickable="true"
-                android:src="@{ playbackState == PlaybackState.PLAYING ? @drawable/ic_pause_circle : @drawable/ic_play_circle}"
+                android:src="@{ (playbackState == PlaybackState.PLAYING || playbackState == PlaybackState.PREPARING) ? @drawable/ic_pause_circle : @drawable/ic_play_circle}"
                 android:tint="@color/colorAccent"/>
 
             <com.mikepenz.iconics.view.IconicsImageView
@@ -192,7 +181,6 @@
                 android:layout_height="32dp"
                 android:layout_centerVertical="true"
                 android:layout_toEndOf="@id/play_pause"
-                android:layout_toRightOf="@+id/play_pause"
                 android:background="?attr/selectableItemBackground"
                 android:clickable="true"
                 android:padding="8dp"
