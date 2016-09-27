@@ -1,6 +1,5 @@
 package com.icapps.vkmusic.fragment;
 
-import android.content.Context;
 import android.databinding.DataBindingUtil;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -15,7 +14,7 @@ import android.widget.SeekBar;
 import com.bumptech.glide.Glide;
 import com.icapps.vkmusic.R;
 import com.icapps.vkmusic.VkApplication;
-import com.icapps.vkmusic.base.BaseFragment;
+import com.icapps.vkmusic.base.BaseMusicFragment;
 import com.icapps.vkmusic.databinding.FragmentNowPlayingBinding;
 import com.icapps.vkmusic.model.albumart.AlbumArtProvider;
 import com.icapps.vkmusic.service.MusicService;
@@ -26,11 +25,10 @@ import javax.inject.Inject;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
-public class NowPlayingFragment extends BaseFragment {
+public class NowPlayingFragment extends BaseMusicFragment {
     @Inject AlbumArtProvider albumArtProvider;
 
     private FragmentNowPlayingBinding binding;
-    private PlaybackControlsListener listener;
     private Drawable placeholderDrawable;
 
     public NowPlayingFragment() {
@@ -45,10 +43,10 @@ public class NowPlayingFragment extends BaseFragment {
         binding.albumSmall.setImageDrawable(placeholderDrawable);
         binding.albumLarge.setImageDrawable(placeholderDrawable);
 
-        binding.next.setOnClickListener(v -> listener.onNextClicked());
-        binding.previous.setOnClickListener(v -> listener.onPreviousClicked());
-        binding.playPause.setOnClickListener(v -> listener.onPlayPauseClicked());
-        binding.playPauseTop.setOnClickListener(v -> listener.onPlayPauseClicked());
+        binding.next.setOnClickListener(v -> onNextClicked());
+        binding.previous.setOnClickListener(v -> onPreviousClicked());
+        binding.playPause.setOnClickListener(v -> onPlayPauseClicked());
+        binding.playPauseTop.setOnClickListener(v -> onPlayPauseClicked());
         binding.playbackPosition.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -57,30 +55,57 @@ public class NowPlayingFragment extends BaseFragment {
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-                listener.onPlaybackPositionTouch();
+                musicService.stopPlaybackPositionUpdating();
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                listener.onPlaybackPositionChosen(seekBar.getProgress());
+                musicService.seek(seekBar.getProgress());
             }
         });
 
+        binding.setCurrentAudio(currentAudio.get());
         return binding.getRoot();
     }
 
-    @Override
-    public void onAttach(Context context) {
-        if (context instanceof PlaybackControlsListener) {
-            listener = (PlaybackControlsListener) context;
-        } else {
-            throw new RuntimeException("Context does not implement PlaybackControlsListener");
+    private void onPlayPauseClicked() {
+        switch (musicService.getState()) {
+            case STOPPED:
+                break;
+            case PREPARING:
+                break;
+            case PLAYING:
+                musicService.pause();
+                break;
+            case PAUSED:
+                musicService.resume();
+                break;
         }
-
-        super.onAttach(context);
     }
 
-    public void setCurrentAudio(VKApiAudio currentAudio) {
+    private void onPreviousClicked() {
+        musicService.playPreviousTrackInQueue();
+    }
+
+    private void onNextClicked() {
+        musicService.playNextTrackInQueue();
+    }
+
+    public void setPlaybackPosition(int playbackPosition) {
+        binding.setPlaybackPosition(playbackPosition);
+    }
+
+    public void setPlaybackState(MusicService.PlaybackState playbackState) {
+        binding.setPlaybackState(playbackState);
+    }
+
+    @Override
+    protected void injectDependencies() {
+        ((VkApplication) getActivity().getApplication()).getUserComponent().inject(this);
+    }
+
+    @Override
+    protected void onCurrentAudioChanged(VKApiAudio currentAudio) {
         binding.setCurrentAudio(currentAudio);
 
         albumArtProvider.getAlbumArtUrl(currentAudio.artist + " - " + currentAudio.title)
@@ -100,30 +125,5 @@ public class NowPlayingFragment extends BaseFragment {
                     binding.albumSmall.setImageDrawable(placeholderDrawable);
                     binding.albumLarge.setImageDrawable(placeholderDrawable);
                 });
-    }
-
-    public void setPlaybackPosition(int playbackPosition) {
-        binding.setPlaybackPosition(playbackPosition);
-    }
-
-    public void setPlaybackState(MusicService.PlaybackState playbackState) {
-        binding.setPlaybackState(playbackState);
-    }
-
-    @Override
-    protected void inject() {
-        ((VkApplication) getActivity().getApplication()).getUserComponent().inject(this);
-    }
-
-    public interface PlaybackControlsListener {
-        void onPreviousClicked();
-
-        void onNextClicked();
-
-        void onPlayPauseClicked();
-
-        void onPlaybackPositionTouch();
-
-        void onPlaybackPositionChosen(int position);
     }
 }

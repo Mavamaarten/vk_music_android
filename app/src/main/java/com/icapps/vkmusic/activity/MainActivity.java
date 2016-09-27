@@ -4,6 +4,7 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.databinding.DataBindingUtil;
+import android.databinding.ObservableField;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.design.widget.Snackbar;
@@ -18,6 +19,7 @@ import com.icapps.vkmusic.base.BaseActivity;
 import com.icapps.vkmusic.databinding.ActivityMainBinding;
 import com.icapps.vkmusic.fragment.MyAudioFragment;
 import com.icapps.vkmusic.fragment.NowPlayingFragment;
+import com.icapps.vkmusic.fragment.PlaybackQueueFragment;
 import com.icapps.vkmusic.fragment.SearchFragment;
 import com.icapps.vkmusic.model.albumart.AlbumArtProvider;
 import com.icapps.vkmusic.service.MusicService;
@@ -34,15 +36,20 @@ import com.vk.sdk.VKAccessToken;
 import com.vk.sdk.VKSdk;
 import com.vk.sdk.api.model.VKApiAudio;
 import com.vk.sdk.api.model.VKApiUser;
+import com.vk.sdk.api.model.VkAudioArray;
 
 import org.json.JSONException;
 
 import javax.inject.Inject;
 
-public class MainActivity extends BaseActivity implements NowPlayingFragment.PlaybackControlsListener, MyAudioFragment.AudioInteractionListener, MusicService.MusicServiceListener {
+public class MainActivity extends BaseActivity implements MusicService.MusicServiceListener {
     @Inject VKAccessToken accessToken;
     @Inject VKApiUser user;
     @Inject AlbumArtProvider albumArtProvider;
+    @Inject VkAudioArray playbackQueue;
+    @Inject ObservableField<VKApiAudio> currentAudio;
+
+    private MusicService musicService;
 
     private Menu optionsMenu;
     private Drawer drawer;
@@ -51,24 +58,11 @@ public class MainActivity extends BaseActivity implements NowPlayingFragment.Pla
 
     private MyAudioFragment myAudioFragment;
     private NowPlayingFragment nowPlayingFragment;
+    private PlaybackQueueFragment playbackQueueFragment;
 
     private ActivityMainBinding binding;
     private boolean musicServiceBound;
-    private MusicService musicService;
-    private ServiceConnection serviceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            musicService = ((MusicService.MusicServiceBinder) service).getService();
-            musicService.addMusicServiceListener(MainActivity.this);
-            musicServiceBound = true;
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            musicServiceBound = false;
-            musicService = null;
-        }
-    };
+    private ServiceConnection serviceConnection;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,22 +72,18 @@ public class MainActivity extends BaseActivity implements NowPlayingFragment.Pla
         setSupportActionBar(binding.toolbar);
 
         createNavigationDrawer();
+        initializeService();
+
+        setTitle(R.string.my_audio);
 
         myAudioFragment = new MyAudioFragment();
         nowPlayingFragment = new NowPlayingFragment();
+        playbackQueueFragment = new PlaybackQueueFragment();
 
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.content_main, myAudioFragment, MyAudioFragment.class.getName())
                 .replace(R.id.content_slidingpanel, nowPlayingFragment, NowPlayingFragment.class.getName())
                 .commit();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Intent intent = new Intent(this, MusicService.class);
-        startService(intent);
-        bindService(intent, serviceConnection, BIND_AUTO_CREATE);
     }
 
     @Override
@@ -149,8 +139,12 @@ public class MainActivity extends BaseActivity implements NowPlayingFragment.Pla
 
         PrimaryDrawerItem nowPlayingItem = new PrimaryDrawerItem()
                 .withIdentifier(4)
-                .withName(R.string.now_playing)
-                .withIcon(GoogleMaterial.Icon.gmd_playlist_play);
+                .withName(R.string.playback_queue)
+                .withIcon(GoogleMaterial.Icon.gmd_playlist_play)
+                .withOnDrawerItemClickListener((view, position, drawerItem) -> {
+                    onPlaybackQueueItemSelected();
+                    return true;
+                });
 
         searchItem = new PrimaryDrawerItem()
                 .withIdentifier(5)
@@ -159,8 +153,7 @@ public class MainActivity extends BaseActivity implements NowPlayingFragment.Pla
                 .withOnDrawerItemClickListener((view, position, drawerItem) -> {
                     onSearchSelected();
                     return true;
-                })
-                .withSetSelected(true);
+                });
 
         drawer = new DrawerBuilder().withActivity(this)
                 .withToolbar(binding.toolbar)
@@ -173,6 +166,27 @@ public class MainActivity extends BaseActivity implements NowPlayingFragment.Pla
                 )
                 .addStickyDrawerItems(settingsItem, aboutItem)
                 .build();
+    }
+
+    private void initializeService(){
+        serviceConnection = new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder service) {
+                musicService = ((MusicService.MusicServiceBinder) service).getService();
+                musicService.addMusicServiceListener(MainActivity.this);
+                musicServiceBound = true;
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+                musicServiceBound = false;
+                musicService = null;
+            }
+        };
+
+        Intent intent = new Intent(this, MusicService.class);
+        startService(intent);
+        bindService(intent, serviceConnection, BIND_AUTO_CREATE);
     }
 
     @Override
@@ -191,7 +205,7 @@ public class MainActivity extends BaseActivity implements NowPlayingFragment.Pla
             @Override
             public boolean onQueryTextSubmit(String query) {
                 SearchFragment searchFragment = (SearchFragment) getSupportFragmentManager().findFragmentByTag(SearchFragment.class.getName());
-                if(searchFragment == null){
+                if (searchFragment == null) {
                     Bundle arguments = new Bundle();
                     arguments.putString("query", query);
 
@@ -201,6 +215,8 @@ public class MainActivity extends BaseActivity implements NowPlayingFragment.Pla
                     getSupportFragmentManager().beginTransaction()
                             .replace(R.id.content_main, searchFragment, SearchFragment.class.getName())
                             .commit();
+
+                    setTitle(R.string.search_results);
                 } else {
                     searchFragment.search(query);
                 }
@@ -223,51 +239,39 @@ public class MainActivity extends BaseActivity implements NowPlayingFragment.Pla
                 .replace(R.id.content_main, myAudioFragment, MyAudioFragment.class.getName())
                 .commit();
 
+        setTitle(R.string.my_audio);
+
         drawer.closeDrawer();
     }
 
-    private void onSearchSelected(){
+    private void onSearchSelected() {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.content_main, new SearchFragment(), SearchFragment.class.getName())
                 .commit();
 
+        setTitle(R.string.search_results);
         drawer.closeDrawer();
 
         optionsMenu.findItem(R.id.action_search).expandActionView();
     }
 
+    private void onPlaybackQueueItemSelected() {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.content_main, playbackQueueFragment, PlaybackQueueFragment.class.getName())
+                .commit();
+
+        setTitle(R.string.playback_queue);
+
+        drawer.closeDrawer();
+    }
+
     public void onLogoutClicked(View sender) {
         VKSdk.logout();
+        ((VkApplication) getApplication()).releaseUserComponent();
 
         Intent intent = new Intent(this, LoginActivity.class);
         startActivity(intent);
         finish();
-    }
-
-    @Override
-    public void onPreviousClicked() {
-
-    }
-
-    @Override
-    public void onNextClicked() {
-
-    }
-
-    @Override
-    public void onPlayPauseClicked() {
-        switch (musicService.getState()) {
-            case STOPPED:
-                break;
-            case PREPARING:
-                break;
-            case PLAYING:
-                musicService.pause();
-                break;
-            case PAUSED:
-                musicService.resume();
-                break;
-        }
     }
 
     @Override
@@ -280,25 +284,6 @@ public class MainActivity extends BaseActivity implements NowPlayingFragment.Pla
     }
 
     @Override
-    public void onPlaybackPositionTouch() {
-        musicService.stopPlaybackPositionUpdating();
-    }
-
-    @Override
-    public void onPlaybackPositionChosen(int position) {
-        musicService.seek(position);
-    }
-
-    @Override
-    public void onAudioClicked(VKApiAudio audio) {
-        if (!musicServiceBound) {
-            return;
-        }
-        musicService.playAudio(audio);
-        nowPlayingFragment.setCurrentAudio(audio);
-    }
-
-    @Override
     public void onMusicServiceException(Exception ex) {
         Snackbar.make(binding.getRoot(), "Music service exception! " + ex, Snackbar.LENGTH_LONG).show();
     }
@@ -306,7 +291,7 @@ public class MainActivity extends BaseActivity implements NowPlayingFragment.Pla
     @Override
     public void onPlaybackStateChanged(MusicService.PlaybackState state) {
         nowPlayingFragment.setPlaybackState(state);
-        if (musicService.getCurrentAudio() == null) {
+        if (currentAudio.get() == null) {
             binding.slidinglayout.setPanelHeight(0);
         } else {
             binding.slidinglayout.setPanelHeight((int) getResources().getDimension(R.dimen.bottom_sheet_height));
@@ -319,7 +304,7 @@ public class MainActivity extends BaseActivity implements NowPlayingFragment.Pla
     }
 
     @Override
-    public void onCurrentAudioChanged(VKApiAudio audio) {
-        nowPlayingFragment.setCurrentAudio(audio);
+    public void onPlaybackQueueChanged() {
+        playbackQueueFragment.updatePlaybackQueue();
     }
 }

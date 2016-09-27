@@ -1,6 +1,5 @@
 package com.icapps.vkmusic.fragment;
 
-import android.content.Context;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -13,7 +12,7 @@ import android.view.ViewGroup;
 import com.icapps.vkmusic.R;
 import com.icapps.vkmusic.VkApplication;
 import com.icapps.vkmusic.adapter.VkAudioAdapter;
-import com.icapps.vkmusic.base.BaseFragment;
+import com.icapps.vkmusic.base.BaseMusicFragment;
 import com.icapps.vkmusic.databinding.FragmentSearchBinding;
 import com.vk.sdk.VKAccessToken;
 import com.vk.sdk.api.VKApi;
@@ -27,13 +26,12 @@ import com.vk.sdk.api.model.VkAudioArray;
 
 import javax.inject.Inject;
 
-public class SearchFragment extends BaseFragment implements VkAudioAdapter.VkAudioAdapterListener {
+public class SearchFragment extends BaseMusicFragment implements VkAudioAdapter.VkAudioAdapterListener {
     @Inject VKAccessToken accessToken;
 
     private FragmentSearchBinding binding;
     private VkAudioAdapter adapter;
     private VkAudioArray audioArray;
-    private MyAudioFragment.AudioInteractionListener listener;
 
     public SearchFragment() {
     }
@@ -43,7 +41,7 @@ public class SearchFragment extends BaseFragment implements VkAudioAdapter.VkAud
         super.onCreate(savedInstanceState);
 
         audioArray = new VkAudioArray();
-        adapter = new VkAudioAdapter(audioArray, this);
+        adapter = new VkAudioAdapter(audioArray, this, getContext(), false, null);
     }
 
     public void search(String searchQuery) {
@@ -85,27 +83,46 @@ public class SearchFragment extends BaseFragment implements VkAudioAdapter.VkAud
     }
 
     @Override
-    protected void inject() {
+    public void onResume() {
+        super.onResume();
+        adapter.setCurrentAudio(currentAudio.get());
+    }
+
+    @Override
+    protected void injectDependencies() {
         ((VkApplication) getActivity().getApplication()).getUserComponent().inject(this);
     }
 
     @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-
-        if(context instanceof MyAudioFragment.AudioInteractionListener){
-            listener = (MyAudioFragment.AudioInteractionListener) context;
-        }
+    protected void onCurrentAudioChanged(VKApiAudio currentAudio) {
+        adapter.setCurrentAudio(currentAudio);
     }
 
     @Override
     public void onAudioClicked(VKApiAudio audio, int position) {
-        listener.onAudioClicked(audio);
+        musicService.playAudio(audioArray, position);
+    }
+
+    @Override
+    public void onCurrentAudioMoved(int toPosition) {
+        // Not applicable to SearchFragment
     }
 
     @Override
     public boolean onAudioMenuItemClicked(VKApiAudio audio, int position, int menuItemId) {
-        // TODO handle popup menu item click
+        switch(menuItemId){
+            case R.id.action_play:
+                musicService.playAudio(audioArray, position);
+                break;
+
+            case R.id.action_play_next:
+                musicService.addTrackAsNextInQueue(audio);
+                break;
+
+            case R.id.action_add_to_playlist:
+                // TODO: implement
+                break;
+        }
         return true;
     }
 }

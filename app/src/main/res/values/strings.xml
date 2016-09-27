@@ -15,4 +15,6 @@
     <string name="my_audio">My audio</string>
     <string name="now_playing">Now playing</string>
     <string name="search">Search</string>
+    <string name="playback_queue">Playback queue</string>
+    <string name="search_results">Search results</string>
 </resources>

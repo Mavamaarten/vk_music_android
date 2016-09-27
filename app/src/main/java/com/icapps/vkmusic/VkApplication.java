@@ -21,12 +21,15 @@ import com.vk.sdk.VKAccessTokenTracker;
 import com.vk.sdk.VKSdk;
 import com.vk.sdk.api.model.VKApiUser;
 
+import io.paperdb.Paper;
+
 /**
  * Created by maartenvangiel on 13/09/16.
  */
 public class VkApplication extends Application {
     private AppComponent appComponent;
     private UserComponent userComponent;
+
     private VKAccessTokenTracker vkAccessTokenTracker = new VKAccessTokenTracker() {
         @Override
         public void onVKAccessTokenChanged(@Nullable VKAccessToken oldToken, @Nullable VKAccessToken newToken) {
@@ -47,6 +50,8 @@ public class VkApplication extends Application {
 
         vkAccessTokenTracker.startTracking();
         VKSdk.initialize(this);
+
+        Paper.init(this);
 
         DrawerImageLoader.init(new AbstractDrawerImageLoader() {
             @Override
@@ -74,4 +79,5 @@ public class VkApplication extends Application {
     public void releaseUserComponent() {
         userComponent = null;
     }
+
 }

@@ -1,8 +1,10 @@
 package com.icapps.vkmusic.di.user;
 
 import com.icapps.vkmusic.activity.MainActivity;
+import com.icapps.vkmusic.base.BaseMusicFragment;
 import com.icapps.vkmusic.fragment.MyAudioFragment;
 import com.icapps.vkmusic.fragment.NowPlayingFragment;
+import com.icapps.vkmusic.fragment.PlaybackQueueFragment;
 import com.icapps.vkmusic.fragment.SearchFragment;
 
 import dagger.Subcomponent;
@@ -20,4 +22,8 @@ public interface UserComponent {
     void inject(NowPlayingFragment nowPlayingFragment);
 
     void inject(SearchFragment searchFragment);
+
+    void inject(PlaybackQueueFragment playbackQueueFragment);
+
+    void inject(BaseMusicFragment baseMusicFragment);
 }
