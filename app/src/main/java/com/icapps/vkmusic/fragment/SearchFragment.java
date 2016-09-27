@@ -14,6 +14,7 @@ import com.icapps.vkmusic.VkApplication;
 import com.icapps.vkmusic.adapter.VkAudioAdapter;
 import com.icapps.vkmusic.base.BaseMusicFragment;
 import com.icapps.vkmusic.databinding.FragmentSearchBinding;
+import com.icapps.vkmusic.service.MusicService;
 import com.vk.sdk.VKAccessToken;
 import com.vk.sdk.api.VKApi;
 import com.vk.sdk.api.VKApiConst;
@@ -85,7 +86,11 @@ public class SearchFragment extends BaseMusicFragment implements VkAudioAdapter.
     @Override
     public void onResume() {
         super.onResume();
-        adapter.setCurrentAudio(currentAudio.get());
+        if (musicService == null || musicService.getState() == MusicService.PlaybackState.STOPPED) {
+            adapter.setCurrentAudio(null);
+        } else {
+            adapter.setCurrentAudio(currentAudio.get());
+        }
     }
 
     @Override
@@ -94,8 +99,12 @@ public class SearchFragment extends BaseMusicFragment implements VkAudioAdapter.
     }
 
     @Override
-    protected void onCurrentAudioChanged(VKApiAudio currentAudio) {
-        adapter.setCurrentAudio(currentAudio);
+    public void onPlaybackStateChanged(MusicService.PlaybackState state) {
+        if (musicService == null || state == MusicService.PlaybackState.STOPPED) {
+            adapter.setCurrentAudio(null);
+        } else {
+            adapter.setCurrentAudio(currentAudio.get());
+        }
     }
 
     @Override

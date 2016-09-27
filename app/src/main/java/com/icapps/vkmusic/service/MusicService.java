@@ -2,6 +2,7 @@ package com.icapps.vkmusic.service;
 
 import android.app.Service;
 import android.content.Intent;
+import android.databinding.Observable;
 import android.databinding.ObservableField;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -19,6 +20,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import javax.inject.Inject;
+
+import io.paperdb.Paper;
 
 /**
  * Created by maartenvangiel on 23/09/16.
@@ -47,6 +50,13 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         mediaPlayer.setOnErrorListener(this);
         mediaPlayer.setOnCompletionListener(this);
         mediaPlayer.setOnSeekCompleteListener(this);
+
+        currentAudio.addOnPropertyChangedCallback(new Observable.OnPropertyChangedCallback() {
+            @Override
+            public void onPropertyChanged(Observable observable, int i) {
+                saveCurrentAudio();
+            }
+        });
     }
 
     @Override
@@ -92,6 +102,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             playbackQueue.addAll(audioArray);
         }
 
+        savePlaybackQueue();
+
         currentIndex = position;
         for (MusicServiceListener listener : listeners) {
             listener.onPlaybackQueueChanged();
@@ -136,6 +148,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         }
 
         playbackQueue.add(Math.min(currentIndex + 1, playbackQueue.size()), audio);
+        savePlaybackQueue();
+
         for (MusicServiceListener listener : listeners) {
             listener.onPlaybackQueueChanged();
         }
@@ -223,12 +237,9 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         this.currentIndex = currentIndex;
     }
 
-    public int getCurrentIndex() {
-        return currentIndex;
-    }
-
     public void clearQueue() {
         playbackQueue.clear();
+        savePlaybackQueue();
         for (MusicServiceListener listener : listeners) {
             listener.onPlaybackQueueChanged();
         }
@@ -247,6 +258,14 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 }
             }
         }
+    }
+
+    public void savePlaybackQueue(){
+        Paper.book().write("playbackQueue", playbackQueue);
+    }
+
+    public void saveCurrentAudio(){
+        Paper.book().write("currentAudio", currentAudio);
     }
 
     public class MusicServiceBinder extends Binder {

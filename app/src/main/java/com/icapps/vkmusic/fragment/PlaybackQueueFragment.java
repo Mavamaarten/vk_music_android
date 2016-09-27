@@ -17,6 +17,7 @@ import com.icapps.vkmusic.adapter.StartDragListener;
 import com.icapps.vkmusic.adapter.VkAudioAdapter;
 import com.icapps.vkmusic.base.BaseMusicFragment;
 import com.icapps.vkmusic.databinding.FragmentPlaybackqueueBinding;
+import com.icapps.vkmusic.service.MusicService;
 import com.vk.sdk.VKAccessToken;
 import com.vk.sdk.api.model.VKApiAudio;
 
@@ -36,7 +37,6 @@ public class PlaybackQueueFragment extends BaseMusicFragment implements VkAudioA
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         adapter = new VkAudioAdapter(playbackQueue, this, getContext(), true, this);
-        adapter.setCurrentAudio(currentAudio.get());
     }
 
     @Override
@@ -57,6 +57,16 @@ public class PlaybackQueueFragment extends BaseMusicFragment implements VkAudioA
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        if (musicService == null || musicService.getState() == MusicService.PlaybackState.STOPPED) {
+            adapter.setCurrentAudio(null);
+        } else {
+            adapter.setCurrentAudio(currentAudio.get());
+        }
+    }
+
+    @Override
     protected void injectDependencies() {
         ((VkApplication) getActivity().getApplication()).getUserComponent().inject(this);
     }
@@ -68,8 +78,8 @@ public class PlaybackQueueFragment extends BaseMusicFragment implements VkAudioA
         }
     }
 
-    private void updateQueueSizeLabel(){
-        if(playbackQueue.size() == 1){
+    private void updateQueueSizeLabel() {
+        if (playbackQueue.size() == 1) {
             binding.queueSize.setText(R.string.track_in_queue);
         } else {
             binding.queueSize.setText(getString(R.string.tracks_in_queue, playbackQueue.size()));
@@ -77,8 +87,12 @@ public class PlaybackQueueFragment extends BaseMusicFragment implements VkAudioA
     }
 
     @Override
-    protected void onCurrentAudioChanged(VKApiAudio currentAudio) {
-        adapter.setCurrentAudio(currentAudio);
+    public void onPlaybackStateChanged(MusicService.PlaybackState state) {
+        if (musicService == null || state == MusicService.PlaybackState.STOPPED) {
+            adapter.setCurrentAudio(null);
+        } else {
+            adapter.setCurrentAudio(currentAudio.get());
+        }
     }
 
     @Override

@@ -43,6 +43,10 @@ public class NowPlayingFragment extends BaseMusicFragment {
         binding.albumSmall.setImageDrawable(placeholderDrawable);
         binding.albumLarge.setImageDrawable(placeholderDrawable);
 
+        if(currentAudio.get() != null){
+            onCurrentAudioChanged(currentAudio.get());
+        }
+
         binding.next.setOnClickListener(v -> onNextClicked());
         binding.previous.setOnClickListener(v -> onPreviousClicked());
         binding.playPause.setOnClickListener(v -> onPlayPauseClicked());
@@ -71,6 +75,9 @@ public class NowPlayingFragment extends BaseMusicFragment {
     private void onPlayPauseClicked() {
         switch (musicService.getState()) {
             case STOPPED:
+                if(currentAudio.get() != null){
+                    musicService.playAudio(currentAudio.get());
+                }
                 break;
             case PREPARING:
                 break;

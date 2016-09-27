@@ -32,7 +32,7 @@ public abstract class BaseMusicFragment extends BaseFragment implements ServiceC
 
     protected abstract void injectDependencies();
 
-    protected abstract void onCurrentAudioChanged(VKApiAudio currentAudio);
+
 
     @Override
     protected void inject() {
@@ -75,6 +75,10 @@ public abstract class BaseMusicFragment extends BaseFragment implements ServiceC
     public void onServiceDisconnected(ComponentName name) {
         musicServiceBound = false;
         musicService = null;
+    }
+
+    protected void onCurrentAudioChanged(VKApiAudio currentAudio) {
+        // Implement in subclass (optional)
     }
 
     @Override
