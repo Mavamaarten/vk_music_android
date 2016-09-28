@@ -153,7 +153,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 case ACTION_OPEN_ACTIVITY:
                     if (listeners.size() == 0) {
                         Intent mainActivityIntent = new Intent(this, MainActivity.class);
-                        mainActivityIntent.putExtra(MainActivity.KEY_INITIAL_FRAGMENT, MainActivity.FRAG_QUEUE);
+                        mainActivityIntent.putExtra(MainActivity.KEY_INITIAL_FRAGMENT, MainActivity.FRAG_NOW_PLAYING);
                         mainActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
                         startActivity(mainActivityIntent);
                     }

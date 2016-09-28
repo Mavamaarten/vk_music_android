@@ -22,7 +22,8 @@
 
         <activity
             android:name="com.icapps.vkmusic.activity.MainActivity"
-            android:theme="@style/AppThemeNoActionbar" />
+            android:theme="@style/AppThemeNoActionbar"
+            android:launchMode="singleTop"/>
 
         <activity
             android:name="com.vk.sdk.VKServiceActivity"

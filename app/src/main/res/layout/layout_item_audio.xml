@@ -32,13 +32,14 @@
 
         <ImageView
             android:id="@+id/drag_handle"
-            android:layout_width="38dp"
+            android:layout_width="36dp"
             android:layout_height="32dp"
             android:layout_centerVertical="true"
             android:paddingBottom="6dp"
-            android:paddingEnd="16dp"
+            android:paddingEnd="18dp"
             android:paddingTop="6dp"
             android:visibility="@{ reorderable ? View.VISIBLE : View.GONE }"
+            android:tint="@color/md_grey_500"
             app:srcCompat="@drawable/ic_drag_handle"/>
 
         <TextView

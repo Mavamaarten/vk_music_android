@@ -8,7 +8,6 @@ import android.databinding.ObservableField;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.SearchView;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -33,6 +32,7 @@ import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
 import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
 import com.mikepenz.materialdrawer.model.ProfileSettingDrawerItem;
 import com.mikepenz.materialdrawer.model.SectionDrawerItem;
+import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import com.vk.sdk.VKAccessToken;
 import com.vk.sdk.VKSdk;
 import com.vk.sdk.api.model.VKApiAudio;
@@ -47,6 +47,7 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
     public static final String KEY_INITIAL_FRAGMENT = "INITIAL_FRAGMENT";
     public static final int FRAG_MYAUDIO = 0;
     public static final int FRAG_QUEUE = 1;
+    public static final int FRAG_NOW_PLAYING = 2;
 
     @Inject VKAccessToken accessToken;
     @Inject VKApiUser user;
@@ -83,17 +84,24 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
         nowPlayingFragment = new NowPlayingFragment();
         playbackQueueFragment = new PlaybackQueueFragment();
 
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.content_slidingpanel, nowPlayingFragment, NowPlayingFragment.class.getName());
-        switch(getIntent().getIntExtra(KEY_INITIAL_FRAGMENT, FRAG_MYAUDIO)){
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.content_slidingpanel, nowPlayingFragment, NowPlayingFragment.class.getName())
+                .commit();
+
+        final int launchFragment = getIntent().getIntExtra(KEY_INITIAL_FRAGMENT, FRAG_MYAUDIO);
+        switch (launchFragment) {
             case FRAG_MYAUDIO:
-                transaction.replace(R.id.content_main, myAudioFragment, MyAudioFragment.class.getName());
+                showMyAudioFragment();
                 break;
             case FRAG_QUEUE:
-                transaction.replace(R.id.content_main, playbackQueueFragment, PlaybackQueueFragment.class.getName());
+            case FRAG_NOW_PLAYING:
+                showPlaybackQueueFragment();
                 break;
         }
-        transaction.commit();
+
+        if (launchFragment == FRAG_NOW_PLAYING) {
+            binding.slidinglayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
+        }
     }
 
     @Override
@@ -148,7 +156,7 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
                 .withName(R.string.my_audio)
                 .withIcon(GoogleMaterial.Icon.gmd_music_note)
                 .withOnDrawerItemClickListener((view, position, drawerItem) -> {
-                    onMyAudioSelected();
+                    showMyAudioFragment();
                     return true;
                 })
                 .withSetSelected(true);
@@ -158,7 +166,7 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
                 .withName(R.string.playback_queue)
                 .withIcon(GoogleMaterial.Icon.gmd_playlist_play)
                 .withOnDrawerItemClickListener((view, position, drawerItem) -> {
-                    onPlaybackQueueItemSelected();
+                    showPlaybackQueueFragment();
                     return true;
                 });
 
@@ -167,7 +175,7 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
                 .withName(R.string.search)
                 .withIcon(GoogleMaterial.Icon.gmd_search)
                 .withOnDrawerItemClickListener((view, position, drawerItem) -> {
-                    onSearchSelected();
+                    showSearchFragment();
                     return true;
                 });
 
@@ -248,7 +256,7 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
         return super.onCreateOptionsMenu(menu);
     }
 
-    private void onMyAudioSelected() {
+    private void showMyAudioFragment() {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.content_main, myAudioFragment, MyAudioFragment.class.getName())
                 .commit();
@@ -258,7 +266,7 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
         drawer.closeDrawer();
     }
 
-    private void onSearchSelected() {
+    private void showSearchFragment() {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.content_main, new SearchFragment(), SearchFragment.class.getName())
                 .commit();
@@ -269,7 +277,7 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
         optionsMenu.findItem(R.id.action_search).expandActionView();
     }
 
-    private void onPlaybackQueueItemSelected() {
+    private void showPlaybackQueueFragment() {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.content_main, playbackQueueFragment, PlaybackQueueFragment.class.getName())
                 .commit();
