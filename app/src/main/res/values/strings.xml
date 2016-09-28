@@ -20,4 +20,5 @@
     <string name="clear_queue">Clear queue</string>
     <string name="tracks_in_queue">%1$d tracks in queue</string>
     <string name="track_in_queue">1 track in queue</string>
+    <string name="download">Download</string>
 </resources>

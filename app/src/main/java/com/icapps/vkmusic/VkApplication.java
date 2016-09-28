@@ -14,6 +14,7 @@ import com.icapps.vkmusic.di.application.AppModule;
 import com.icapps.vkmusic.di.application.DaggerAppComponent;
 import com.icapps.vkmusic.di.user.UserComponent;
 import com.icapps.vkmusic.di.user.UserModule;
+import com.karumi.dexter.Dexter;
 import com.mikepenz.materialdrawer.util.AbstractDrawerImageLoader;
 import com.mikepenz.materialdrawer.util.DrawerImageLoader;
 import com.vk.sdk.VKAccessToken;
@@ -52,6 +53,8 @@ public class VkApplication extends Application {
         VKSdk.initialize(this);
 
         Paper.init(this);
+
+        Dexter.initialize(this);
 
         DrawerImageLoader.init(new AbstractDrawerImageLoader() {
             @Override

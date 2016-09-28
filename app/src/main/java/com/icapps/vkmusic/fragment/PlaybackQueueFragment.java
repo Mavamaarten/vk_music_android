@@ -18,6 +18,7 @@ import com.icapps.vkmusic.adapter.VkAudioAdapter;
 import com.icapps.vkmusic.base.BaseMusicFragment;
 import com.icapps.vkmusic.databinding.FragmentPlaybackqueueBinding;
 import com.icapps.vkmusic.service.MusicService;
+import com.icapps.vkmusic.util.DownloadUtil;
 import com.vk.sdk.VKAccessToken;
 import com.vk.sdk.api.model.VKApiAudio;
 
@@ -119,6 +120,10 @@ public class PlaybackQueueFragment extends BaseMusicFragment implements VkAudioA
 
             case R.id.action_add_to_playlist:
                 // TODO: implement
+                break;
+
+            case R.id.action_download:
+                DownloadUtil.downloadTrack(getContext(), audio);
                 break;
         }
         return true;

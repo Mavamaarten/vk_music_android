@@ -48,6 +48,7 @@ dependencies {
     compile 'com.android.support:recyclerview-v7:24.2.1'
     compile 'com.github.bumptech.glide:glide:3.7.0'
     compile 'io.paperdb:paperdb:1.5'
+    compile 'com.karumi:dexter:2.3.1'
     compile 'frankiesardo:icepick:3.2.0'
     compile 'com.sothree.slidinguppanel:library:3.3.1'
     compile 'com.mikepenz:google-material-typeface:2.2.0.3.original@aar'
