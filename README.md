@@ -2,7 +2,6 @@
 A music player for vk.com using the following libraries:
 
 - [Dagger2](https://github.com/google/dagger) for dependency injection
-	- Preconfigured Application scope and User scope
 - [Icepick](https://github.com/frankiesardo/icepick) for saving and restoring instance state
 - [RxJava](https://github.com/ReactiveX/RxJava) & [RxAndroid](https://github.com/ReactiveX/RxAndroid)
 - [Paper](https://github.com/pilgr/Paper)
