@@ -4,34 +4,59 @@ import android.app.Service;
 import android.content.Intent;
 import android.databinding.Observable;
 import android.databinding.ObservableField;
+import android.graphics.Bitmap;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.request.target.SimpleTarget;
+import com.icapps.vkmusic.R;
 import com.icapps.vkmusic.VkApplication;
+import com.icapps.vkmusic.activity.MainActivity;
+import com.icapps.vkmusic.model.albumart.AlbumArtProvider;
 import com.vk.sdk.api.model.VKApiAudio;
 import com.vk.sdk.api.model.VkAudioArray;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
 
 import javax.inject.Inject;
 
 import io.paperdb.Paper;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 /**
  * Created by maartenvangiel on 23/09/16.
  */
 public class MusicService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnSeekCompleteListener {
+    public static final String KEY_ACTION = "MUSIC_ACTION";
+    public static final int ACTION_PLAY_PAUSE = 1;
+    public static final int ACTION_PREVIOUS = 2;
+    public static final int ACTION_NEXT = 3;
+    public static final int ACTION_DISMISS = 4;
+    public static final int ACTION_OPEN_ACTIVITY = 5;
+
     @Inject VkAudioArray playbackQueue;
     @Inject ObservableField<VKApiAudio> currentAudio;
+    @Inject ObservableField<String> currentAlbumArtUrl;
+    @Inject AlbumArtProvider albumArtProvider;
+
+    private Observable.OnPropertyChangedCallback currentAudioCallback;
+    private Observable.OnPropertyChangedCallback currentAlbumArtCallback;
 
     private final IBinder binder = new MusicServiceBinder();
     private final List<MusicServiceListener> listeners = new ArrayList<>();
+
+    private MusicNotificationManager notificationManager;
+
     private MediaPlayer mediaPlayer;
     private Thread playbackPositionThread;
     private PlaybackState state = PlaybackState.STOPPED;
@@ -51,23 +76,92 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         mediaPlayer.setOnCompletionListener(this);
         mediaPlayer.setOnSeekCompleteListener(this);
 
-        currentAudio.addOnPropertyChangedCallback(new Observable.OnPropertyChangedCallback() {
+        notificationManager = new MusicNotificationManager(this);
+
+        if (currentAudio.get() != null) {
+            notificationManager.updateNotification(currentAudio.get());
+        }
+
+        currentAudioCallback = new Observable.OnPropertyChangedCallback() {
             @Override
             public void onPropertyChanged(Observable observable, int i) {
+                final VKApiAudio audio = currentAudio.get();
+                fetchAlbumArt(audio);
+                notificationManager.updateNotification(audio);
                 saveCurrentAudio();
             }
-        });
+        };
+        currentAlbumArtCallback = new Observable.OnPropertyChangedCallback() {
+            @Override
+            public void onPropertyChanged(Observable observable, int i) {
+                Glide.with(MusicService.this)
+                        .load(currentAlbumArtUrl.get())
+                        .asBitmap()
+                        .error(R.drawable.ic_album_placeholder)
+                        .into(new SimpleTarget<Bitmap>() {
+                            @Override
+                            public void onResourceReady(Bitmap bitmap, GlideAnimation<? super Bitmap> glideAnimation) {
+                                notificationManager.updateNotificationBitmap(bitmap);
+                            }
+                        });
+                saveCurrentAlbumArtUrl();
+            }
+        };
+
+        currentAudio.addOnPropertyChangedCallback(currentAudioCallback);
+        currentAlbumArtUrl.addOnPropertyChangedCallback(currentAlbumArtCallback);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+        mediaPlayer.release();
+        currentAudio.removeOnPropertyChangedCallback(currentAudioCallback);
+        currentAlbumArtUrl.removeOnPropertyChangedCallback(currentAlbumArtCallback);
         System.out.println("MusicService destroyed");
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
+
+        if (intent != null && intent.hasExtra(KEY_ACTION)) {
+            switch (intent.getIntExtra(KEY_ACTION, 0)) {
+                case ACTION_PLAY_PAUSE:
+                    playPause();
+                    break;
+
+                case ACTION_PREVIOUS:
+                    playPreviousTrackInQueue();
+                    break;
+
+                case ACTION_NEXT:
+                    playNextTrackInQueue();
+                    break;
+
+                case ACTION_DISMISS:
+                    mediaPlayer.stop();
+                    notificationManager.destroyNotification();
+
+                    for (MusicServiceListener listener : listeners) {
+                        listener.onFinishRequested();
+                    }
+
+                    stopSelf();
+                    break;
+
+                case ACTION_OPEN_ACTIVITY:
+                    if (listeners.size() == 0) {
+                        Intent mainActivityIntent = new Intent(this, MainActivity.class);
+                        mainActivityIntent.putExtra(MainActivity.KEY_INITIAL_FRAGMENT, MainActivity.FRAG_QUEUE);
+                        mainActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                        startActivity(mainActivityIntent);
+                    }
+
+                    break;
+            }
+        }
+
         return START_STICKY;
     }
 
@@ -76,7 +170,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         for (MusicServiceListener listener : listeners) {
             listener.onPlaybackStateChanged(state);
         }
-        System.out.println(state.name());
+        notificationManager.updateNotificationPlaybackState(state);
     }
 
     public void addMusicServiceListener(MusicServiceListener listener) {
@@ -122,6 +216,10 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             mediaPlayer.prepareAsync();
             currentAudio.set(audio);
             setState(PlaybackState.PREPARING);
+
+            notificationManager.createNotification();
+            notificationManager.updateNotification(currentAudio.get());
+            currentAlbumArtCallback.onPropertyChanged(currentAlbumArtUrl, 0);
         } catch (IOException e) {
             for (MusicServiceListener listener : listeners) {
                 listener.onMusicServiceException(e);
@@ -245,32 +343,65 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         }
     }
 
-    public class PlaybackPositionThread extends Thread {
-        @Override
-        public void run() {
-            while (!isInterrupted() && mediaPlayer != null) {
-                for (MusicServiceListener listener : listeners) {
-                    listener.onPlaybackPositionChanged(mediaPlayer.getCurrentPosition() / 1000);
-                }
-                try {
-                    sleep(1000);
-                } catch (InterruptedException ignored) {
-                }
-            }
-        }
+    public void fetchAlbumArt(VKApiAudio audio) {
+        albumArtProvider.getAlbumArtUrl(audio.artist + " - " + audio.title)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(url -> {
+                    currentAlbumArtUrl.set(url);
+                }, throwable -> {
+                    currentAlbumArtUrl.set(null);
+                });
     }
 
-    public void savePlaybackQueue(){
+    public void savePlaybackQueue() {
         Paper.book().write("playbackQueue", playbackQueue);
     }
 
-    public void saveCurrentAudio(){
+    public void saveCurrentAudio() {
         Paper.book().write("currentAudio", currentAudio);
+    }
+
+    public void saveCurrentAlbumArtUrl() {
+        Paper.book().write("currentAlbumArtUrl", currentAlbumArtUrl);
+    }
+
+    public void playPause() {
+        switch (state) {
+            case STOPPED:
+                if (currentAudio.get() != null) {
+                    playAudio(currentAudio.get());
+                }
+                break;
+            case PREPARING:
+                break;
+            case PLAYING:
+                pause();
+                break;
+            case PAUSED:
+                resume();
+                break;
+        }
     }
 
     public class MusicServiceBinder extends Binder {
         public MusicService getService() {
             return MusicService.this;
+        }
+    }
+
+    public class PlaybackPositionThread extends Thread {
+        @Override
+        public void run() {
+            while (!isInterrupted() && mediaPlayer != null) {
+                try {
+                    for (MusicServiceListener listener : listeners) {
+                        listener.onPlaybackPositionChanged(mediaPlayer.getCurrentPosition() / 1000);
+                    }
+                    sleep(1000);
+                } catch (InterruptedException | ConcurrentModificationException ignored) {
+                }
+            }
         }
     }
 
@@ -289,5 +420,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         void onPlaybackPositionChanged(int position);
 
         void onPlaybackQueueChanged();
+
+        void onFinishRequested();
     }
 }

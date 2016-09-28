@@ -50,4 +50,10 @@ public class AppModule {
     ObservableField<VKApiAudio> provideCurrentAudio(){
         return Paper.book().read("currentAudio", new ObservableField<>());
     }
+
+    @Provides
+    @Singleton
+    ObservableField<String> provideCurrentAlbumArtUrl(){
+        return Paper.book().read("currentAlbumArtUrl", new ObservableField<>());
+    }
 }

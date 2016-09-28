@@ -22,12 +22,7 @@ import com.vk.sdk.api.model.VKApiAudio;
 
 import javax.inject.Inject;
 
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
-
 public class NowPlayingFragment extends BaseMusicFragment {
-    @Inject AlbumArtProvider albumArtProvider;
-
     private FragmentNowPlayingBinding binding;
     private Drawable placeholderDrawable;
 
@@ -43,8 +38,11 @@ public class NowPlayingFragment extends BaseMusicFragment {
         binding.albumSmall.setImageDrawable(placeholderDrawable);
         binding.albumLarge.setImageDrawable(placeholderDrawable);
 
-        if(currentAudio.get() != null){
+        if (currentAudio.get() != null) {
             onCurrentAudioChanged(currentAudio.get());
+        }
+        if (currentAlbumArtUrl.get() != null) {
+            onCurrentAlbumArtChanged(currentAlbumArtUrl.get());
         }
 
         binding.next.setOnClickListener(v -> onNextClicked());
@@ -73,21 +71,7 @@ public class NowPlayingFragment extends BaseMusicFragment {
     }
 
     private void onPlayPauseClicked() {
-        switch (musicService.getState()) {
-            case STOPPED:
-                if(currentAudio.get() != null){
-                    musicService.playAudio(currentAudio.get());
-                }
-                break;
-            case PREPARING:
-                break;
-            case PLAYING:
-                musicService.pause();
-                break;
-            case PAUSED:
-                musicService.resume();
-                break;
-        }
+        musicService.playPause();
     }
 
     private void onPreviousClicked() {
@@ -114,23 +98,20 @@ public class NowPlayingFragment extends BaseMusicFragment {
     @Override
     protected void onCurrentAudioChanged(VKApiAudio currentAudio) {
         binding.setCurrentAudio(currentAudio);
+    }
 
-        albumArtProvider.getAlbumArtUrl(currentAudio.artist + " - " + currentAudio.title)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(url -> {
-                    Glide.with(getContext())
-                            .load(url)
-                            .placeholder(placeholderDrawable)
-                            .into(binding.albumSmall);
+    @Override
+    protected void onCurrentAlbumArtChanged(String currentAlbumArtUrl) {
+        Glide.with(this)
+                .load(currentAlbumArtUrl)
+                .error(R.drawable.ic_album_placeholder)
+                .placeholder(R.drawable.ic_album_placeholder)
+                .into(binding.albumLarge);
 
-                    Glide.with(getContext())
-                            .load(url)
-                            .placeholder(placeholderDrawable)
-                            .into(binding.albumLarge);
-                }, throwable -> {
-                    binding.albumSmall.setImageDrawable(placeholderDrawable);
-                    binding.albumLarge.setImageDrawable(placeholderDrawable);
-                });
+        Glide.with(this)
+                .load(currentAlbumArtUrl)
+                .error(R.drawable.ic_album_placeholder)
+                .placeholder(R.drawable.ic_album_placeholder)
+                .into(binding.albumSmall);
     }
 }

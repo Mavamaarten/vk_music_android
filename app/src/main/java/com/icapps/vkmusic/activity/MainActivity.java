@@ -8,6 +8,7 @@ import android.databinding.ObservableField;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.SearchView;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -43,6 +44,10 @@ import org.json.JSONException;
 import javax.inject.Inject;
 
 public class MainActivity extends BaseActivity implements MusicService.MusicServiceListener {
+    public static final String KEY_INITIAL_FRAGMENT = "INITIAL_FRAGMENT";
+    public static final int FRAG_MYAUDIO = 0;
+    public static final int FRAG_QUEUE = 1;
+
     @Inject VKAccessToken accessToken;
     @Inject VKApiUser user;
     @Inject AlbumArtProvider albumArtProvider;
@@ -61,7 +66,6 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
     private PlaybackQueueFragment playbackQueueFragment;
 
     private ActivityMainBinding binding;
-    private boolean musicServiceBound;
     private ServiceConnection serviceConnection;
 
     @Override
@@ -72,7 +76,6 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
         setSupportActionBar(binding.toolbar);
 
         createNavigationDrawer();
-        initializeService();
 
         setTitle(R.string.my_audio);
 
@@ -80,15 +83,28 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
         nowPlayingFragment = new NowPlayingFragment();
         playbackQueueFragment = new PlaybackQueueFragment();
 
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.content_main, myAudioFragment, MyAudioFragment.class.getName())
-                .replace(R.id.content_slidingpanel, nowPlayingFragment, NowPlayingFragment.class.getName())
-                .commit();
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.content_slidingpanel, nowPlayingFragment, NowPlayingFragment.class.getName());
+        switch(getIntent().getIntExtra(KEY_INITIAL_FRAGMENT, FRAG_MYAUDIO)){
+            case FRAG_MYAUDIO:
+                transaction.replace(R.id.content_main, myAudioFragment, MyAudioFragment.class.getName());
+                break;
+            case FRAG_QUEUE:
+                transaction.replace(R.id.content_main, playbackQueueFragment, PlaybackQueueFragment.class.getName());
+                break;
+        }
+        transaction.commit();
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
+    protected void onStart() {
+        super.onStart();
+        initializeService();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
         musicService.removeMusicServiceListener(this);
         unbindService(serviceConnection);
     }
@@ -168,18 +184,16 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
                 .build();
     }
 
-    private void initializeService(){
+    private void initializeService() {
         serviceConnection = new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName name, IBinder service) {
                 musicService = ((MusicService.MusicServiceBinder) service).getService();
                 musicService.addMusicServiceListener(MainActivity.this);
-                musicServiceBound = true;
             }
 
             @Override
             public void onServiceDisconnected(ComponentName name) {
-                musicServiceBound = false;
                 musicService = null;
             }
         };
@@ -306,5 +320,10 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
     @Override
     public void onPlaybackQueueChanged() {
         playbackQueueFragment.updatePlaybackQueue();
+    }
+
+    @Override
+    public void onFinishRequested() {
+        finishAffinity();
     }
 }

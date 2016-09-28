@@ -23,16 +23,16 @@ import static android.content.Context.BIND_AUTO_CREATE;
  */
 public abstract class BaseMusicFragment extends BaseFragment implements ServiceConnection, MusicService.MusicServiceListener {
     @Inject public ObservableField<VKApiAudio> currentAudio;
+    @Inject public ObservableField<String> currentAlbumArtUrl;
     @Inject public VkAudioArray playbackQueue;
 
     private Observable.OnPropertyChangedCallback currentAudioCallback;
+    private Observable.OnPropertyChangedCallback currentAlbumArtCallback;
 
     protected MusicService musicService;
     protected boolean musicServiceBound;
 
     protected abstract void injectDependencies();
-
-
 
     @Override
     protected void inject() {
@@ -44,16 +44,27 @@ public abstract class BaseMusicFragment extends BaseFragment implements ServiceC
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Intent intent = new Intent(getContext(), MusicService.class);
-        getContext().bindService(intent, this, BIND_AUTO_CREATE);
-
         currentAudioCallback = new Observable.OnPropertyChangedCallback() {
             @Override
             public void onPropertyChanged(Observable observable, int i) {
                 onCurrentAudioChanged(currentAudio.get());
             }
         };
+        currentAlbumArtCallback = new Observable.OnPropertyChangedCallback() {
+            @Override
+            public void onPropertyChanged(Observable observable, int i) {
+                onCurrentAlbumArtChanged(currentAlbumArtUrl.get());
+            }
+        };
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Intent intent = new Intent(getContext(), MusicService.class);
+        getContext().bindService(intent, this, BIND_AUTO_CREATE);
         currentAudio.addOnPropertyChangedCallback(currentAudioCallback);
+        currentAlbumArtUrl.addOnPropertyChangedCallback(currentAlbumArtCallback);
     }
 
     @Override
@@ -62,6 +73,7 @@ public abstract class BaseMusicFragment extends BaseFragment implements ServiceC
         musicService.removeMusicServiceListener(this);
         getContext().unbindService(this);
         currentAudio.removeOnPropertyChangedCallback(currentAudioCallback);
+        currentAlbumArtUrl.removeOnPropertyChangedCallback(currentAlbumArtCallback);
     }
 
     @Override
@@ -77,7 +89,16 @@ public abstract class BaseMusicFragment extends BaseFragment implements ServiceC
         musicService = null;
     }
 
+    @Override
+    public void onFinishRequested() {
+        getActivity().finish();
+    }
+
     protected void onCurrentAudioChanged(VKApiAudio currentAudio) {
+        // Implement in subclass (optional)
+    }
+
+    protected void onCurrentAlbumArtChanged(String currentAlbumArtUrl) {
         // Implement in subclass (optional)
     }
 
