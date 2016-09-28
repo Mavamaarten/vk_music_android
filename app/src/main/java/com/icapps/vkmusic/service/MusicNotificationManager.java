@@ -68,7 +68,7 @@ class MusicNotificationManager {
         notificationViewLarge.setOnClickPendingIntent(R.id.dismiss, dismissPendingIntent);
 
         notification = new NotificationCompat.Builder(context)
-                .setSmallIcon(R.mipmap.ic_launcher)
+                .setSmallIcon(R.drawable.ic_vk_social_network_logo)
                 .setContentIntent(openActivityPendingIntent)
                 .setContentTitle("vk Music")
                 .setContent(notificationViewSmall)

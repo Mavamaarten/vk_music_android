@@ -306,12 +306,20 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         if (currentIndex < playbackQueue.size() - 1) {
             VKApiAudio audio = playbackQueue.get(++currentIndex);
             playAudio(audio);
+        } else if(currentIndex > playbackQueue.size() && playbackQueue.size() > 0){
+            currentIndex = 0;
+            VKApiAudio audio = playbackQueue.get(currentIndex);
+            playAudio(audio);
         }
     }
 
     public void playPreviousTrackInQueue() {
-        if (currentIndex > 0) {
+        if ((currentIndex - 1) >= 0 && (currentIndex < playbackQueue.size())) {
             VKApiAudio audio = playbackQueue.get(--currentIndex);
+            playAudio(audio);
+        } else if(currentIndex >= playbackQueue.size() && playbackQueue.size() > 0){
+            currentIndex = 0;
+            VKApiAudio audio = playbackQueue.get(currentIndex);
             playAudio(audio);
         }
     }
