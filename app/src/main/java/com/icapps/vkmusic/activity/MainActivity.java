@@ -9,10 +9,12 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.SearchView;
+import android.text.Html;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.google.gson.Gson;
 import com.icapps.vkmusic.R;
 import com.icapps.vkmusic.VkApplication;
 import com.icapps.vkmusic.base.BaseActivity;
@@ -20,8 +22,11 @@ import com.icapps.vkmusic.databinding.ActivityMainBinding;
 import com.icapps.vkmusic.fragment.MyAudioFragment;
 import com.icapps.vkmusic.fragment.NowPlayingFragment;
 import com.icapps.vkmusic.fragment.PlaybackQueueFragment;
+import com.icapps.vkmusic.fragment.PlaylistFragment;
 import com.icapps.vkmusic.fragment.SearchFragment;
 import com.icapps.vkmusic.model.albumart.AlbumArtProvider;
+import com.icapps.vkmusic.model.api.VkApiAlbum;
+import com.icapps.vkmusic.model.api.VkApiAlbumArrayResponse;
 import com.icapps.vkmusic.service.MusicService;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
 import com.mikepenz.materialdrawer.AccountHeader;
@@ -35,11 +40,19 @@ import com.mikepenz.materialdrawer.model.SectionDrawerItem;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import com.vk.sdk.VKAccessToken;
 import com.vk.sdk.VKSdk;
+import com.vk.sdk.api.VKApi;
+import com.vk.sdk.api.VKApiConst;
+import com.vk.sdk.api.VKParameters;
+import com.vk.sdk.api.VKRequest;
+import com.vk.sdk.api.VKResponse;
 import com.vk.sdk.api.model.VKApiAudio;
 import com.vk.sdk.api.model.VKApiUser;
 import com.vk.sdk.api.model.VkAudioArray;
 
 import org.json.JSONException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -54,6 +67,7 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
     @Inject AlbumArtProvider albumArtProvider;
     @Inject VkAudioArray playbackQueue;
     @Inject ObservableField<VKApiAudio> currentAudio;
+    @Inject Gson gson;
 
     private MusicService musicService;
 
@@ -61,6 +75,7 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
     private Drawer drawer;
     private PrimaryDrawerItem searchItem;
     private PrimaryDrawerItem myAudioItem;
+    private List<PrimaryDrawerItem> playlistDrawerItems;
 
     private MyAudioFragment myAudioFragment;
     private NowPlayingFragment nowPlayingFragment;
@@ -68,6 +83,8 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
 
     private ActivityMainBinding binding;
     private ServiceConnection serviceConnection;
+
+    private List<VkApiAlbum> playlists;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,6 +119,41 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
         if (launchFragment == FRAG_NOW_PLAYING) {
             binding.slidinglayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
         }
+
+        playlistDrawerItems = new ArrayList<>();
+        playlists = new ArrayList<>();
+        loadPlaylists();
+    }
+
+    private void loadPlaylists() {
+        VKApi.audio().getAlbums(VKParameters.from(VKApiConst.OWNER_ID, user.getId())).executeWithListener(new VKRequest.VKRequestListener() {
+            @Override
+            public void onComplete(VKResponse response) {
+                VkApiAlbumArrayResponse albumsResponse = gson.fromJson(response.responseString, VkApiAlbumArrayResponse.class);
+                playlists.clear();
+                playlists.addAll(albumsResponse.getResponse().getItems());
+
+                for(VkApiAlbum album : playlists){
+                    String fixedTitle;
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                        fixedTitle = Html.fromHtml(album.getTitle(), Html.FROM_HTML_MODE_LEGACY).toString();
+                    } else {
+                        fixedTitle = Html.fromHtml(album.getTitle()).toString();
+                    }
+                    album.setTitle(fixedTitle);
+
+                    PrimaryDrawerItem item = new PrimaryDrawerItem()
+                            .withIdentifier(album.getId())
+                            .withName(album.getTitle())
+                            .withOnDrawerItemClickListener((view, position, drawerItem) -> {
+                                showPlaylistFragment(album);
+                                return false;
+                            });
+
+                    drawer.addItem(item);
+                }
+            }
+        });
     }
 
     @Override
@@ -283,6 +335,22 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
                 .commit();
 
         setTitle(R.string.playback_queue);
+
+        drawer.closeDrawer();
+    }
+
+    private void showPlaylistFragment(VkApiAlbum playlist) {
+        Bundle arguments = new Bundle();
+        arguments.putParcelable(PlaylistFragment.KEY_PLAYLIST, playlist);
+
+        PlaylistFragment playlistFragment = new PlaylistFragment();
+        playlistFragment.setArguments(arguments);
+
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.content_main, playlistFragment, PlaylistFragment.class.getName())
+                .commit();
+
+        setTitle(playlist.getTitle());
 
         drawer.closeDrawer();
     }

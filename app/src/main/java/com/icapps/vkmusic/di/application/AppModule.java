@@ -4,6 +4,7 @@ import android.app.Application;
 import android.content.Context;
 import android.databinding.ObservableField;
 
+import com.google.gson.Gson;
 import com.icapps.vkmusic.model.albumart.AlbumArtProvider;
 import com.icapps.vkmusic.model.albumart.BingAlbumArtProvider;
 import com.vk.sdk.api.model.VKApiAudio;
@@ -55,5 +56,11 @@ public class AppModule {
     @Singleton
     ObservableField<String> provideCurrentAlbumArtUrl(){
         return Paper.book().read("currentAlbumArtUrl", new ObservableField<>());
+    }
+
+    @Provides
+    @Singleton
+    Gson provideGson(){
+        return new Gson();
     }
 }
