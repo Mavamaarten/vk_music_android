@@ -19,6 +19,7 @@ import com.icapps.vkmusic.R;
 import com.icapps.vkmusic.VkApplication;
 import com.icapps.vkmusic.base.BaseActivity;
 import com.icapps.vkmusic.databinding.ActivityMainBinding;
+import com.icapps.vkmusic.dialog.AddTrackToPlaylistDialogFragment;
 import com.icapps.vkmusic.fragment.MyAudioFragment;
 import com.icapps.vkmusic.fragment.NowPlayingFragment;
 import com.icapps.vkmusic.fragment.PlaybackQueueFragment;
@@ -56,7 +57,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-public class MainActivity extends BaseActivity implements MusicService.MusicServiceListener {
+public class MainActivity extends BaseActivity implements MusicService.MusicServiceListener, AddTrackToPlaylistDialogFragment.AddTrackToPlaylistListener {
     public static final String KEY_INITIAL_FRAGMENT = "INITIAL_FRAGMENT";
     public static final int FRAG_MYAUDIO = 0;
     public static final int FRAG_QUEUE = 1;
@@ -401,5 +402,10 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
     @Override
     public void onFinishRequested() {
         finishAffinity();
+    }
+
+    @Override
+    public void onAudioAddedToPlaylist(VKApiAudio audio, VkApiAlbum playlist) {
+        Snackbar.make(binding.slidinglayout, "Track successfully added to " + playlist.getTitle(), Snackbar.LENGTH_SHORT).show();
     }
 }

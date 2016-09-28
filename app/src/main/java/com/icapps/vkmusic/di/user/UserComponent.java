@@ -2,6 +2,7 @@ package com.icapps.vkmusic.di.user;
 
 import com.icapps.vkmusic.activity.MainActivity;
 import com.icapps.vkmusic.base.BaseMusicFragment;
+import com.icapps.vkmusic.dialog.AddTrackToPlaylistDialogFragment;
 import com.icapps.vkmusic.fragment.MyAudioFragment;
 import com.icapps.vkmusic.fragment.NowPlayingFragment;
 import com.icapps.vkmusic.fragment.PlaybackQueueFragment;
@@ -26,4 +27,6 @@ public interface UserComponent {
     void inject(PlaybackQueueFragment playbackQueueFragment);
 
     void inject(BaseMusicFragment baseMusicFragment);
+
+    void inject(AddTrackToPlaylistDialogFragment addTrackToPlaylistDialogFragment);
 }

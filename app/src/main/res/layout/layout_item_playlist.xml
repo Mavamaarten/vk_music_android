@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="playlist"
+            type="com.icapps.vkmusic.model.api.VkApiAlbum"/>
+
+    </data>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:orientation="horizontal"
+        android:paddingBottom="12dp"
+        android:paddingTop="12dp"
+        android:gravity="center_vertical">
+
+        <com.mikepenz.iconics.view.IconicsImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginEnd="8dp"
+            android:padding="8dp"
+            app:iiv_color="@color/md_grey_700"
+            app:iiv_icon="gmd-list"/>
+
+        <TextView
+            android:id="@+id/playlist_title"
+            style="@style/TextAppearance.AppCompat.Subhead"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:lines="1"
+            android:text="@{playlist.title}"
+            tools:text="Drum &amp; Bass"/>
+
+
+
+    </LinearLayout>
+
+</layout>

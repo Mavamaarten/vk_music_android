@@ -14,6 +14,7 @@ import com.icapps.vkmusic.VkApplication;
 import com.icapps.vkmusic.adapter.VkAudioAdapter;
 import com.icapps.vkmusic.base.BaseMusicFragment;
 import com.icapps.vkmusic.databinding.FragmentSearchBinding;
+import com.icapps.vkmusic.dialog.AddTrackToPlaylistDialogFragment;
 import com.icapps.vkmusic.service.MusicService;
 import com.icapps.vkmusic.util.DownloadUtil;
 import com.vk.sdk.VKAccessToken;
@@ -130,7 +131,12 @@ public class SearchFragment extends BaseMusicFragment implements VkAudioAdapter.
                 break;
 
             case R.id.action_add_to_playlist:
-                // TODO: implement
+                Bundle arguments = new Bundle();
+                arguments.putParcelable(AddTrackToPlaylistDialogFragment.KEY_AUDIO, audio);
+
+                AddTrackToPlaylistDialogFragment addTrackToPlaylistDialogFragment = new AddTrackToPlaylistDialogFragment();
+                addTrackToPlaylistDialogFragment.setArguments(arguments);
+                addTrackToPlaylistDialogFragment.show(getActivity().getFragmentManager(), "playlist_selection");
                 break;
 
             case R.id.action_download:
