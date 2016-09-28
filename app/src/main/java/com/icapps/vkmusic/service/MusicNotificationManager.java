@@ -2,9 +2,14 @@ package com.icapps.vkmusic.service;
 
 import android.app.Notification;
 import android.app.PendingIntent;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.media.AudioManager;
+import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.app.NotificationCompat;
 import android.widget.RemoteViews;
 
@@ -21,6 +26,7 @@ class MusicNotificationManager {
     private RemoteViews notificationViewSmall;
     private RemoteViews notificationViewLarge;
     private android.app.NotificationManager notificationManager;
+    private MediaSessionCompat mediaSession;
 
     private final Context context;
 
@@ -28,12 +34,14 @@ class MusicNotificationManager {
         this.context = context;
     }
 
-    private boolean isNotificationShown(){
+    private boolean isNotificationShown() {
         return notification != null;
     }
 
     void createNotification() {
-        if(notification != null) return;
+        if (notification != null) return;
+
+        createMediaSession();
 
         Intent playPauseIntent = new Intent(context, MusicService.class);
         playPauseIntent.putExtra(MusicService.KEY_ACTION, MusicService.ACTION_PLAY_PAUSE);
@@ -58,6 +66,10 @@ class MusicNotificationManager {
         notificationViewSmall = new RemoteViews(context.getPackageName(), R.layout.layout_notification_small);
         notificationViewSmall.setTextViewText(R.id.title, context.getString(R.string.no_track_playing));
         notificationViewSmall.setTextViewText(R.id.artist, "");
+        notificationViewSmall.setOnClickPendingIntent(R.id.play_pause, playPausePendingIntent);
+        notificationViewSmall.setOnClickPendingIntent(R.id.previous, previousPendingIntent);
+        notificationViewSmall.setOnClickPendingIntent(R.id.next, nextPendingIntent);
+        notificationViewSmall.setOnClickPendingIntent(R.id.dismiss, dismissPendingIntent);
 
         notificationViewLarge = new RemoteViews(context.getPackageName(), R.layout.layout_notification_large);
         notificationViewLarge.setTextViewText(R.id.title, context.getString(R.string.no_track_playing));
@@ -80,37 +92,67 @@ class MusicNotificationManager {
         notificationManager.notify(NOTIFICATION_ID, notification);
     }
 
-    void destroyNotification(){
-        if(!isNotificationShown()) return;
+    private void createMediaSession() {
+        ComponentName receiver = new ComponentName(context.getPackageName(), RemoteReceiver.class.getName());
+        mediaSession = new MediaSessionCompat(context, "MusicService", receiver, null);
+        mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
+        mediaSession.setPlaybackState(
+                new PlaybackStateCompat.Builder()
+                        .setState(PlaybackStateCompat.STATE_PLAYING, 0, 0)
+                        .setActions(PlaybackStateCompat.ACTION_PLAY_PAUSE)
+                        .build()
+        );
+
+        AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+        audioManager.requestAudioFocus(focusChange -> {}, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+        mediaSession.setActive(true);
+    }
+
+    void destroyNotification() {
+        if (!isNotificationShown()) return;
         notificationManager.cancel(NOTIFICATION_ID);
         notification = null;
+
+        mediaSession.release();
     }
 
     void updateNotificationBitmap(Bitmap bitmap) {
-        if(!isNotificationShown()) return;
+        if (!isNotificationShown()) return;
         notificationViewSmall.setImageViewBitmap(R.id.album_small, bitmap);
         notificationViewLarge.setImageViewBitmap(R.id.album_large, bitmap);
         notificationManager.notify(NOTIFICATION_ID, notification);
+
+        mediaSession.setMetadata(new MediaMetadataCompat.Builder()
+                .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, bitmap)
+                .build());
     }
 
     void updateNotificationPlaybackState(MusicService.PlaybackState state) {
-        if(!isNotificationShown()) return;
+        if (!isNotificationShown()) return;
 
         switch (state) {
             case STOPPED:
             case PAUSED:
                 notificationViewLarge.setImageViewResource(R.id.play_pause, R.drawable.ic_play_bitmap);
+                notificationViewSmall.setImageViewResource(R.id.play_pause, R.drawable.ic_play_bitmap);
                 break;
             case PREPARING:
             case PLAYING:
                 notificationViewLarge.setImageViewResource(R.id.play_pause, R.drawable.ic_pause_bitmap);
+                notificationViewSmall.setImageViewResource(R.id.play_pause, R.drawable.ic_pause_bitmap);
                 break;
         }
         notificationManager.notify(NOTIFICATION_ID, notification);
     }
 
     void updateNotification(VKApiAudio currentAudio) {
-        if(!isNotificationShown()) return;
+        if (!isNotificationShown()) return;
+
+        mediaSession.setMetadata(new MediaMetadataCompat.Builder()
+                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, currentAudio.artist)
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, currentAudio.title)
+                .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, currentAudio.duration * 1000)
+                .build());
 
         notificationViewSmall.setTextViewText(R.id.title, currentAudio.title);
         notificationViewSmall.setTextViewText(R.id.artist, currentAudio.artist);

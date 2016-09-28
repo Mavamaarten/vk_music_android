@@ -22,6 +22,7 @@
         android:layout_toEndOf="@id/album_small"
         android:layout_toStartOf="@+id/playback_controls"
         android:ellipsize="end"
+        android:maxLines="1"
         android:textColor="@android:color/black"
         tools:text="What if I go?"/>
 
@@ -34,6 +35,7 @@
         android:layout_toEndOf="@id/album_small"
         android:layout_toStartOf="@+id/playback_controls"
         android:ellipsize="end"
+        android:maxLines="1"
         android:textColor="@color/md_grey_700"
         tools:text="Mura Masa"/>
 
@@ -71,12 +73,12 @@
 
         <ImageView
             android:id="@+id/dismiss"
-            android:layout_alignParentEnd="true"
             android:layout_width="32dp"
             android:layout_height="32dp"
+            android:layout_alignParentEnd="true"
             android:padding="4dp"
-            android:tint="@color/md_grey_700"
-            android:src="@drawable/ic_close_bitmap"/>
+            android:src="@drawable/ic_close_bitmap"
+            android:tint="@color/md_grey_700"/>
 
     </LinearLayout>
 

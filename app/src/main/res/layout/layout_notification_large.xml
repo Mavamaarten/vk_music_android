@@ -17,22 +17,23 @@
         style="@style/TextAppearance.AppCompat.Subhead"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_toStartOf="@+id/dismiss"
         android:layout_marginBottom="2dp"
         android:layout_marginTop="2dp"
         android:layout_toEndOf="@id/album_large"
+        android:layout_toStartOf="@+id/dismiss"
         android:ellipsize="end"
+        android:maxLines="2"
         android:textColor="@android:color/black"
         tools:text="What if I go?"/>
 
     <ImageView
         android:id="@+id/dismiss"
-        android:layout_alignParentEnd="true"
         android:layout_width="32dp"
         android:layout_height="32dp"
+        android:layout_alignParentEnd="true"
         android:padding="4dp"
-        android:tint="@color/md_grey_700"
-        android:src="@drawable/ic_close_bitmap"/>
+        android:src="@drawable/ic_close_bitmap"
+        android:tint="@color/md_grey_700"/>
 
     <TextView
         android:id="@+id/artist"
@@ -51,8 +52,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
+        android:layout_marginTop="8dp"
         android:layout_toEndOf="@+id/album_large"
         android:orientation="horizontal">
 
@@ -67,8 +68,8 @@
             android:id="@+id/play_pause"
             android:layout_width="32dp"
             android:layout_height="32dp"
-            android:layout_marginLeft="16dp"
-            android:layout_marginRight="16dp"
+            android:layout_marginLeft="24dp"
+            android:layout_marginRight="24dp"
             android:src="@drawable/ic_play_bitmap"
             android:tint="@color/md_grey_700"/>
 

@@ -8,6 +8,7 @@ import android.databinding.ObservableField;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.SearchView;
 import android.text.Html;
 import android.view.Menu;
@@ -134,20 +135,21 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
                 playlists.clear();
                 playlists.addAll(albumsResponse.getResponse().getItems());
 
-                for(VkApiAlbum album : playlists){
+                for(VkApiAlbum playlist : playlists){
                     String fixedTitle;
                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-                        fixedTitle = Html.fromHtml(album.getTitle(), Html.FROM_HTML_MODE_LEGACY).toString();
+                        fixedTitle = Html.fromHtml(playlist.getTitle(), Html.FROM_HTML_MODE_LEGACY).toString();
                     } else {
-                        fixedTitle = Html.fromHtml(album.getTitle()).toString();
+                        fixedTitle = Html.fromHtml(playlist.getTitle()).toString();
                     }
-                    album.setTitle(fixedTitle);
+                    playlist.setTitle(fixedTitle);
 
                     PrimaryDrawerItem item = new PrimaryDrawerItem()
-                            .withIdentifier(album.getId())
-                            .withName(album.getTitle())
+                            .withIdentifier(playlist.getId())
+                            .withName(playlist.getTitle())
+                            .withTag(playlist)
                             .withOnDrawerItemClickListener((view, position, drawerItem) -> {
-                                showPlaylistFragment(album);
+                                showPlaylistFragment(playlist);
                                 return false;
                             });
 
@@ -243,6 +245,33 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
                 )
                 .addStickyDrawerItems(settingsItem, aboutItem)
                 .build();
+
+        drawer.setOnDrawerItemLongClickListener((view, position, drawerItem) -> {
+            Object tag = drawerItem.getTag();
+            if(tag != null && tag instanceof VkApiAlbum){
+                onPlaylistItemLongClicked((VkApiAlbum) tag);
+                return true;
+            }
+            return false;
+        });
+    }
+
+    private void onPlaylistItemLongClicked(VkApiAlbum playlist) {
+        new AlertDialog.Builder(this)
+                .setMessage("Are you sure you want to delete " + playlist.getTitle() + "?")
+                .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+
+                    VKApi.audio().deleteAlbum(VKParameters.from(VKApiConst.ALBUM_ID, playlist.getId())).executeWithListener(new VKRequest.VKRequestListener() {
+                        @Override
+                        public void onComplete(VKResponse response) {
+                            drawer.removeItem(playlist.getId());
+                            loadPlaylists();
+                            Snackbar.make(binding.slidinglayout, "Playlist successfully deleted", Snackbar.LENGTH_SHORT).show();
+                        }
+                    });
+
+                })
+                .show();
     }
 
     private void initializeService() {

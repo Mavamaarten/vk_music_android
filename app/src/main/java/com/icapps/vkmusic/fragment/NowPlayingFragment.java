@@ -38,13 +38,6 @@ public class NowPlayingFragment extends BaseMusicFragment {
         binding.albumSmall.setImageDrawable(placeholderDrawable);
         binding.albumLarge.setImageDrawable(placeholderDrawable);
 
-        if (currentAudio.get() != null) {
-            onCurrentAudioChanged(currentAudio.get());
-        }
-        if (currentAlbumArtUrl.get() != null) {
-            onCurrentAlbumArtChanged(currentAlbumArtUrl.get());
-        }
-
         binding.next.setOnClickListener(v -> onNextClicked());
         binding.previous.setOnClickListener(v -> onPreviousClicked());
         binding.playPause.setOnClickListener(v -> onPlayPauseClicked());
@@ -68,6 +61,17 @@ public class NowPlayingFragment extends BaseMusicFragment {
 
         binding.setCurrentAudio(currentAudio.get());
         return binding.getRoot();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (currentAudio.get() != null) {
+            onCurrentAudioChanged(currentAudio.get());
+        }
+        if (currentAlbumArtUrl.get() != null) {
+            onCurrentAlbumArtChanged(currentAlbumArtUrl.get());
+        }
     }
 
     private void onPlayPauseClicked() {

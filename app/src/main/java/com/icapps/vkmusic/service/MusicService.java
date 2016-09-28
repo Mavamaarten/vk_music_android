@@ -189,6 +189,10 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
      * @param position   the index of the track to play
      */
     public void playAudio(VkAudioArray audioArray, int position) {
+        if(audioArray.size() == 0 || position < 0 || position > audioArray.size() - 1){
+            return;
+        }
+
         playAudio(audioArray.get(position));
 
         if (!playbackQueue.equals(audioArray)) {
