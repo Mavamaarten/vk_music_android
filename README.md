@@ -1,5 +1,17 @@
 #vk Music
-A music player for vk.com using the following libraries:
+An android music player for vk.com, made to look like the Google Play Music app.
+
+Vk Music has the following features:
+- Your tracks
+- Search
+- Playlists
+- Recommendations (radio)
+- Notification with playback controls
+- Fullscreen lockscreen background
+
+![screenshots](screenshots.png)
+
+##Used libraries
 
 - [Dagger2](https://github.com/google/dagger) for dependency injection
 - [Icepick](https://github.com/frankiesardo/icepick) for saving and restoring instance state
@@ -8,6 +20,8 @@ A music player for vk.com using the following libraries:
 - [SlidingUpPanel](https://github.com/umano/AndroidSlidingUpPanel)
 - [Glide](https://github.com/bumptech/glide)
 - [MaterialDrawer](https://github.com/mikepenz/MaterialDrawer)
+- [Dexter](https://github.com/Karumi/Dexter)
+- [Crashlytics](https://www.crashlytics.com)
 
 It also uses
 - Android Databinding
