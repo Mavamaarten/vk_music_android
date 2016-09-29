@@ -61,7 +61,11 @@ public class AddTrackToPlaylistDialogFragment extends DialogFragment implements 
         binding = DataBindingUtil.inflate(inflater, R.layout.layout_dialog_playlistselection, container, false);
 
         adapter = new VkAlbumAdapter(playlists, this);
-        binding.rcvPlaylists.setLayoutManager(new LinearLayoutManager(inflater.getContext(), LinearLayoutManager.VERTICAL, false));
+
+        LinearLayoutManager layoutManager = new LinearLayoutManager(inflater.getContext(), LinearLayoutManager.VERTICAL, false);
+        layoutManager.setAutoMeasureEnabled(true);
+
+        binding.rcvPlaylists.setLayoutManager(layoutManager);
         binding.rcvPlaylists.setAdapter(adapter);
 
         return binding.getRoot();
@@ -111,8 +115,13 @@ public class AddTrackToPlaylistDialogFragment extends DialogFragment implements 
 
     @Override
     public void onPlaylistClicked(VkApiAlbum playlist, int position) {
+        if(binding.loadingIndicator.getVisibility() == View.VISIBLE){
+            return; // Don't accept click events when loading
+        }
+
         binding.loadingIndicator.setVisibility(View.VISIBLE);
-        VKApi.audio().moveToAlbum(VKParameters.from(VKApiConst.ALBUM_ID, playlist.getId(), "audio_ids", audioToAdd.getId())).executeWithListener(new VKRequest.VKRequestListener() {
+
+        VKApi.audio().add(VKParameters.from("audio_id", audioToAdd.id, "owner_id", audioToAdd.owner_id, VKApiConst.ALBUM_ID, playlist.getId())).executeWithListener(new VKRequest.VKRequestListener() {
             @Override
             public void onComplete(VKResponse response) {
                 if(listener != null){

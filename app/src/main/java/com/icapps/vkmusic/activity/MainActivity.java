@@ -294,15 +294,14 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
         new AlertDialog.Builder(this)
                 .setTitle(R.string.create_playlist)
                 .setView(alertView)
+                .setNegativeButton(android.R.string.cancel, null)
                 .setPositiveButton(android.R.string.ok, (dialog, which) -> {
-
                     VKApi.audio().addAlbum(VKParameters.from("title", playlistTitle.getText())).executeWithListener(new VKRequest.VKRequestListener() {
                         @Override
                         public void onComplete(VKResponse response) {
                             loadPlaylists();
                         }
                     });
-
                 })
                 .show();
     }
@@ -310,8 +309,8 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
     private void onPlaylistItemLongClicked(VkApiAlbum playlist) {
         new AlertDialog.Builder(this)
                 .setMessage("Are you sure you want to delete " + playlist.getTitle() + "?")
+                .setNegativeButton(android.R.string.cancel, null)
                 .setPositiveButton(android.R.string.ok, (dialog, which) -> {
-
                     VKApi.audio().deleteAlbum(VKParameters.from(VKApiConst.ALBUM_ID, playlist.getId())).executeWithListener(new VKRequest.VKRequestListener() {
                         @Override
                         public void onComplete(VKResponse response) {
@@ -320,7 +319,6 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
                             Snackbar.make(binding.slidinglayout, "Playlist successfully deleted", Snackbar.LENGTH_SHORT).show();
                         }
                     });
-
                 })
                 .show();
     }
