@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 
 import com.icapps.vkmusic.R;
 import com.icapps.vkmusic.VkApplication;
+import com.icapps.vkmusic.activity.MainActivity;
 import com.icapps.vkmusic.adapter.VkAudioAdapter;
 import com.icapps.vkmusic.base.BaseMusicFragment;
 import com.icapps.vkmusic.databinding.FragmentMyAudioBinding;
@@ -92,6 +93,7 @@ public class MyAudioFragment extends BaseMusicFragment implements VkAudioAdapter
         } else {
             adapter.setCurrentAudio(currentAudio.get());
         }
+        getActivity().setTitle(R.string.my_audio);
     }
 
     @Override
@@ -136,6 +138,10 @@ public class MyAudioFragment extends BaseMusicFragment implements VkAudioAdapter
                 AddTrackToPlaylistDialogFragment addTrackToPlaylistDialogFragment = new AddTrackToPlaylistDialogFragment();
                 addTrackToPlaylistDialogFragment.setArguments(arguments);
                 addTrackToPlaylistDialogFragment.show(getActivity().getFragmentManager(), "playlist_selection");
+                break;
+
+            case R.id.action_track_radio:
+                ((MainActivity)getActivity()).startRadio(audio);
                 break;
 
             case R.id.action_download:

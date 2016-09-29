@@ -6,6 +6,7 @@ import com.icapps.vkmusic.dialog.AddTrackToPlaylistDialogFragment;
 import com.icapps.vkmusic.fragment.MyAudioFragment;
 import com.icapps.vkmusic.fragment.NowPlayingFragment;
 import com.icapps.vkmusic.fragment.PlaybackQueueFragment;
+import com.icapps.vkmusic.fragment.RadioFragment;
 import com.icapps.vkmusic.fragment.SearchFragment;
 
 import dagger.Subcomponent;
@@ -29,4 +30,6 @@ public interface UserComponent {
     void inject(BaseMusicFragment baseMusicFragment);
 
     void inject(AddTrackToPlaylistDialogFragment addTrackToPlaylistDialogFragment);
+
+    void inject(RadioFragment radioFragment);
 }

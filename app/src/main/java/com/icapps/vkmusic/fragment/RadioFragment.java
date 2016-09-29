@@ -14,9 +14,8 @@ import com.icapps.vkmusic.VkApplication;
 import com.icapps.vkmusic.activity.MainActivity;
 import com.icapps.vkmusic.adapter.VkAudioAdapter;
 import com.icapps.vkmusic.base.BaseMusicFragment;
-import com.icapps.vkmusic.databinding.FragmentPlaylistBinding;
+import com.icapps.vkmusic.databinding.FragmentRadioBinding;
 import com.icapps.vkmusic.dialog.AddTrackToPlaylistDialogFragment;
-import com.icapps.vkmusic.model.api.VkApiAlbum;
 import com.icapps.vkmusic.service.MusicService;
 import com.icapps.vkmusic.util.DownloadUtil;
 import com.vk.sdk.api.VKApi;
@@ -28,55 +27,88 @@ import com.vk.sdk.api.VKResponse;
 import com.vk.sdk.api.model.VKApiAudio;
 import com.vk.sdk.api.model.VkAudioArray;
 
-public class PlaylistFragment extends BaseMusicFragment implements VkAudioAdapter.VkAudioAdapterListener {
-    public static final String KEY_PLAYLIST = "PLAYLIST";
+import icepick.State;
+import rx.functions.Action0;
 
-    private FragmentPlaylistBinding binding;
+/**
+ * Created by maartenvangiel on 28/09/16.
+ */
+public class RadioFragment extends BaseMusicFragment implements VkAudioAdapter.VkAudioAdapterListener {
+    public static final String KEY_AUDIO = "AUDIO";
+
+    @State VkAudioArray audioArray;
+    @State boolean startRadioWhenShown;
+    @State VKApiAudio radioTrack;
+
+    private FragmentRadioBinding binding;
     private VkAudioAdapter adapter;
-    private VkAudioArray audioArray;
-    private VkApiAlbum playlist;
-
-    public PlaylistFragment() {
-    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        audioArray = new VkAudioArray();
-        adapter = new VkAudioAdapter(audioArray, this, getContext(), false, null);
-
-        playlist = getArguments().getParcelable(KEY_PLAYLIST);
+        if (audioArray == null) {
+            audioArray = new VkAudioArray();
+        }
     }
 
-    public void loadPlaylist() {
+    public void setStartRadioWhenShown(boolean startRadioWhenShown) {
+        this.startRadioWhenShown = startRadioWhenShown;
+    }
+
+    public void startRadio(@Nullable VKApiAudio radioTrack) {
+        startRadioWhenShown = false;
+        loadRadio(radioTrack, () -> {
+            if (audioArray.size() > 0) {
+                onAudioClicked(audioArray.get(0), 0);
+            }
+        });
+    }
+
+    public void loadRadio(@Nullable VKApiAudio radioTrack, @Nullable Action0 onCompletedCallback) {
         binding.loadingIndicator.setVisibility(View.VISIBLE);
-        VKApi.audio().get(VKParameters.from(VKApiConst.ALBUM_ID, playlist.getId())).executeWithListener(new VKRequest.VKRequestListener() {
+
+        VKParameters parameters;
+        if (radioTrack == null) {
+            parameters = VKParameters.from(VKApiConst.COUNT, 100, "shuffle", 1);
+        } else {
+            parameters = VKParameters.from("target_audio", radioTrack.owner_id + "_" + radioTrack.id, VKApiConst.COUNT, 100, "shuffle", 1);
+        }
+
+        VKApi.audio().getRecommendations(parameters).executeWithListener(new VKRequest.VKRequestListener() {
             @Override
             public void onComplete(VKResponse response) {
                 audioArray.clear();
                 audioArray.addAll((VkAudioArray) response.parsedModel);
                 adapter.notifyDataSetChanged();
                 binding.loadingIndicator.setVisibility(View.GONE);
+
+                if (audioArray.size() == 0) {
+                    Snackbar.make(binding.getRoot(), R.string.no_similar_tracks, Snackbar.LENGTH_LONG).show();
+                }
+
+                if (onCompletedCallback != null) onCompletedCallback.call();
             }
 
             @Override
             public void onError(VKError error) {
-                Snackbar.make(binding.rcvAudio, "Error loading search results", Snackbar.LENGTH_LONG);
+                Snackbar.make(binding.rcvAudio, R.string.error_loading_radio, Snackbar.LENGTH_LONG);
                 binding.loadingIndicator.setVisibility(View.GONE);
             }
         });
     }
 
+    @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_playlist, container, false);
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_radio, container, false);
 
+        adapter = new VkAudioAdapter(audioArray, this, getContext(), false, null);
         binding.rcvAudio.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
         binding.rcvAudio.setAdapter(adapter);
 
-        if (getArguments() != null && getArguments().containsKey(KEY_PLAYLIST)) {
-            loadPlaylist();
+        if (audioArray.size() == 0) {
+            loadRadio(radioTrack, null);
         }
 
         return binding.getRoot();
@@ -90,11 +122,11 @@ public class PlaylistFragment extends BaseMusicFragment implements VkAudioAdapte
         } else {
             adapter.setCurrentAudio(currentAudio.get());
         }
-    }
+        getActivity().setTitle(R.string.radio);
 
-    @Override
-    protected void injectDependencies() {
-        ((VkApplication) getActivity().getApplication()).getUserComponent().inject(this);
+        if(startRadioWhenShown){
+            startRadio(radioTrack);
+        }
     }
 
     @Override
@@ -107,13 +139,18 @@ public class PlaylistFragment extends BaseMusicFragment implements VkAudioAdapte
     }
 
     @Override
+    protected void injectDependencies() {
+        ((VkApplication) getActivity().getApplication()).getUserComponent().inject(this);
+    }
+
+    @Override
     public void onAudioClicked(VKApiAudio audio, int position) {
         musicService.playAudio(audioArray, position);
     }
 
     @Override
     public void onCurrentAudioMoved(int toPosition) {
-        // Not applicable to SearchFragment
+        // Not applicable to Radio
     }
 
     @Override
@@ -145,5 +182,9 @@ public class PlaylistFragment extends BaseMusicFragment implements VkAudioAdapte
                 break;
         }
         return true;
+    }
+
+    public void setRadioTrack(VKApiAudio radioTrack) {
+        this.radioTrack = radioTrack;
     }
 }

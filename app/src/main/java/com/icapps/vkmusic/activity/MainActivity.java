@@ -7,6 +7,7 @@ import android.databinding.DataBindingUtil;
 import android.databinding.ObservableField;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.SearchView;
@@ -25,6 +26,7 @@ import com.icapps.vkmusic.fragment.MyAudioFragment;
 import com.icapps.vkmusic.fragment.NowPlayingFragment;
 import com.icapps.vkmusic.fragment.PlaybackQueueFragment;
 import com.icapps.vkmusic.fragment.PlaylistFragment;
+import com.icapps.vkmusic.fragment.RadioFragment;
 import com.icapps.vkmusic.fragment.SearchFragment;
 import com.icapps.vkmusic.model.albumart.AlbumArtProvider;
 import com.icapps.vkmusic.model.api.VkApiAlbum;
@@ -77,11 +79,11 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
     private Drawer drawer;
     private PrimaryDrawerItem searchItem;
     private PrimaryDrawerItem myAudioItem;
-    private List<PrimaryDrawerItem> playlistDrawerItems;
 
     private MyAudioFragment myAudioFragment;
     private NowPlayingFragment nowPlayingFragment;
     private PlaybackQueueFragment playbackQueueFragment;
+    private RadioFragment radioFragment;
 
     private ActivityMainBinding binding;
     private ServiceConnection serviceConnection;
@@ -102,6 +104,7 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
         myAudioFragment = new MyAudioFragment();
         nowPlayingFragment = new NowPlayingFragment();
         playbackQueueFragment = new PlaybackQueueFragment();
+        radioFragment = new RadioFragment();
 
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.content_slidingpanel, nowPlayingFragment, NowPlayingFragment.class.getName())
@@ -122,7 +125,6 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
             binding.slidinglayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
         }
 
-        playlistDrawerItems = new ArrayList<>();
         playlists = new ArrayList<>();
         loadPlaylists();
     }
@@ -343,8 +345,6 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
                 .replace(R.id.content_main, myAudioFragment, MyAudioFragment.class.getName())
                 .commit();
 
-        setTitle(R.string.my_audio);
-
         drawer.closeDrawer();
     }
 
@@ -353,7 +353,6 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
                 .replace(R.id.content_main, new SearchFragment(), SearchFragment.class.getName())
                 .commit();
 
-        setTitle(R.string.search_results);
         drawer.closeDrawer();
 
         optionsMenu.findItem(R.id.action_search).expandActionView();
@@ -364,9 +363,21 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
                 .replace(R.id.content_main, playbackQueueFragment, PlaybackQueueFragment.class.getName())
                 .commit();
 
-        setTitle(R.string.playback_queue);
+        drawer.closeDrawer();
+    }
+
+    private void showRadioFragment(){
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.content_main, radioFragment, PlaybackQueueFragment.class.getName())
+                .commit();
 
         drawer.closeDrawer();
+    }
+
+    public void startRadio(@Nullable VKApiAudio radioTrack){
+        showRadioFragment();
+        radioFragment.setRadioTrack(radioTrack);
+        radioFragment.setStartRadioWhenShown(true);
     }
 
     private void showPlaylistFragment(VkApiAlbum playlist) {

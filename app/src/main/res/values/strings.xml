@@ -22,4 +22,8 @@
     <string name="track_in_queue">1 track in queue</string>
     <string name="download">Download</string>
     <string name="choose_playlist">Choose playlist</string>
+    <string name="start_radio">Start radio</string>
+    <string name="radio">Radio</string>
+    <string name="no_similar_tracks">No similar tracks found</string>
+    <string name="error_loading_radio">Error loading radio</string>
 </resources>

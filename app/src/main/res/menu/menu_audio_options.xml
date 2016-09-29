@@ -14,6 +14,10 @@
         android:title="@string/add_to_playlist" />
 
     <item
+        android:id="@+id/action_track_radio"
+        android:title="@string/start_radio"/>
+
+    <item
         android:id="@+id/action_download"
         android:title="@string/download"/>
 
