@@ -31,7 +31,7 @@
         android:layout_height="32dp"
         android:layout_alignParentEnd="true"
         android:padding="4dp"
-        android:src="@drawable/ic_close_bitmap"
+        android:src="@drawable/ic_close"
         android:tint="@color/md_grey_700"/>
 
     <TextView
@@ -60,7 +60,7 @@
             android:id="@+id/previous"
             android:layout_width="32dp"
             android:layout_height="32dp"
-            android:src="@drawable/ic_skip_previous_bitmap"
+            android:src="@drawable/ic_skip_previous"
             android:tint="@color/md_grey_700"/>
 
         <ImageView
@@ -76,7 +76,7 @@
             android:id="@+id/next"
             android:layout_width="32dp"
             android:layout_height="32dp"
-            android:src="@drawable/ic_skip_next_bitmap"
+            android:src="@drawable/ic_skip_next"
             android:tint="@color/md_grey_700"/>
 
     </LinearLayout>
