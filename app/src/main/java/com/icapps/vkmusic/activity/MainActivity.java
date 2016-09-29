@@ -34,6 +34,8 @@ import com.icapps.vkmusic.model.albumart.AlbumArtProvider;
 import com.icapps.vkmusic.model.api.VkApiAlbum;
 import com.icapps.vkmusic.model.api.VkApiAlbumArrayResponse;
 import com.icapps.vkmusic.service.MusicService;
+import com.mikepenz.aboutlibraries.Libs;
+import com.mikepenz.aboutlibraries.LibsBuilder;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
 import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
@@ -208,6 +210,12 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
                 .withIdentifier(1)
                 .withName(getString(R.string.about))
                 .withSelectable(false)
+                .withOnDrawerItemClickListener((view, position, drawerItem) -> {
+                    new LibsBuilder()
+                            .withActivityStyle(Libs.ActivityStyle.LIGHT_DARK_TOOLBAR)
+                            .start(MainActivity.this);
+                    return false;
+                })
                 .withIcon(GoogleMaterial.Icon.gmd_info);
 
         PrimaryDrawerItem settingsItem = new PrimaryDrawerItem()

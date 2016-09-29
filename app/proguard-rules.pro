@@ -23,3 +23,8 @@
     @icepick.* <fields>;
 }
 -keepnames class * { @icepick.State *;}
+
+-keep class .R
+-keep class **.R$* {
+    <fields>;
+}

@@ -39,6 +39,9 @@ dependencies {
     compile('com.mikepenz:materialdrawer:5.6.0@aar') {
         transitive = true
     }
+    compile('com.mikepenz:aboutlibraries:5.8.1@aar') {
+        transitive = true
+    }
     compile 'com.android.support:appcompat-v7:24.2.1'
     compile 'com.android.support:support-core-ui:24.2.1'
     compile 'com.android.support:support-core-utils:24.2.1'
