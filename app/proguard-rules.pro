@@ -17,6 +17,9 @@
 #}
 
 -dontwarn icepick.**
+-dontwarn java.lang.invoke**
+-dontwarn sun.misc.Unsafe**
+
 -keep class icepick.** { *; }
 -keep class **$$Icepick { *; }
 -keepclasseswithmembernames class * {
@@ -24,7 +27,26 @@
 }
 -keepnames class * { @icepick.State *;}
 
+-keep class com.icapps.vkmusic.model.** { *; }
+
 -keep class .R
 -keep class **.R$* {
     <fields>;
+}
+
+# rxjava
+-keep class rx.schedulers.Schedulers {
+    public static <methods>;
+}
+-keep class rx.schedulers.ImmediateScheduler {
+    public <methods>;
+}
+-keep class rx.schedulers.TestScheduler {
+    public <methods>;
+}
+-keep class rx.schedulers.Schedulers {
+    public static ** test();
+}
+-keep class rx.internal.util.unsafe** {
+    *;
 }
