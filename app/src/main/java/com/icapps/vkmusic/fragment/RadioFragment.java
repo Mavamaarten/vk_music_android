@@ -85,6 +85,9 @@ public class RadioFragment extends BaseMusicFragment implements VkAudioAdapter.V
 
                 if (audioArray.size() == 0) {
                     Snackbar.make(binding.getRoot(), R.string.no_similar_tracks, Snackbar.LENGTH_LONG).show();
+                    binding.noData.getRoot().setVisibility(View.VISIBLE);
+                } else {
+                    binding.noData.getRoot().setVisibility(View.GONE);
                 }
 
                 if (onCompletedCallback != null) onCompletedCallback.call();
@@ -124,7 +127,7 @@ public class RadioFragment extends BaseMusicFragment implements VkAudioAdapter.V
         }
         getActivity().setTitle(R.string.radio);
 
-        if(startRadioWhenShown){
+        if (startRadioWhenShown) {
             startRadio(radioTrack);
         }
     }

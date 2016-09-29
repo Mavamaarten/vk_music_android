@@ -59,6 +59,12 @@ public class MyAudioFragment extends BaseMusicFragment implements VkAudioAdapter
                 audioArray.addAll((VkAudioArray) response.parsedModel);
                 adapter.notifyDataSetChanged();
                 binding.swiperefresh.setRefreshing(false);
+
+                if(audioArray.size() == 0){
+                    binding.noData.getRoot().setVisibility(View.VISIBLE);
+                } else {
+                    binding.noData.getRoot().setVisibility(View.GONE);
+                }
             }
 
             @Override

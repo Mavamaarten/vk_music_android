@@ -12,9 +12,11 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.SearchView;
 import android.text.Html;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 
 import com.google.gson.Gson;
 import com.icapps.vkmusic.R;
@@ -79,6 +81,9 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
     private Drawer drawer;
     private PrimaryDrawerItem searchItem;
     private PrimaryDrawerItem myAudioItem;
+    private PrimaryDrawerItem addPlaylistItem;
+    private PrimaryDrawerItem radioItem;
+    private List<PrimaryDrawerItem> playlistDrawerItems = new ArrayList<>();
 
     private MyAudioFragment myAudioFragment;
     private NowPlayingFragment nowPlayingFragment;
@@ -87,8 +92,6 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
 
     private ActivityMainBinding binding;
     private ServiceConnection serviceConnection;
-
-    private List<VkApiAlbum> playlists;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -125,7 +128,6 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
             binding.slidinglayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
         }
 
-        playlists = new ArrayList<>();
         loadPlaylists();
     }
 
@@ -134,10 +136,13 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
             @Override
             public void onComplete(VKResponse response) {
                 VkApiAlbumArrayResponse albumsResponse = gson.fromJson(response.responseString, VkApiAlbumArrayResponse.class);
-                playlists.clear();
-                playlists.addAll(albumsResponse.getResponse().getItems());
 
-                for(VkApiAlbum playlist : playlists){
+                for (PrimaryDrawerItem item : playlistDrawerItems) {
+                    drawer.removeItem(item.getIdentifier());
+                }
+
+                playlistDrawerItems.clear();
+                for (VkApiAlbum playlist : albumsResponse.getResponse().getItems()) {
                     String fixedTitle;
                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
                         fixedTitle = Html.fromHtml(playlist.getTitle(), Html.FROM_HTML_MODE_LEGACY).toString();
@@ -155,7 +160,8 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
                                 return false;
                             });
 
-                    drawer.addItem(item);
+                    playlistDrawerItems.add(item);
+                    drawer.addItemAtPosition(item, drawer.getPosition(addPlaylistItem));
                 }
             }
         });
@@ -201,11 +207,13 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
         PrimaryDrawerItem aboutItem = new PrimaryDrawerItem()
                 .withIdentifier(1)
                 .withName(getString(R.string.about))
+                .withSelectable(false)
                 .withIcon(GoogleMaterial.Icon.gmd_info);
 
         PrimaryDrawerItem settingsItem = new PrimaryDrawerItem()
                 .withIdentifier(2)
                 .withName(R.string.settings)
+                .withSelectable(false)
                 .withIcon(GoogleMaterial.Icon.gmd_settings);
 
         myAudioItem = new PrimaryDrawerItem()
@@ -227,13 +235,32 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
                     return true;
                 });
 
-        searchItem = new PrimaryDrawerItem()
+        radioItem = new PrimaryDrawerItem()
                 .withIdentifier(5)
+                .withName(R.string.radio)
+                .withIcon(GoogleMaterial.Icon.gmd_radio)
+                .withOnDrawerItemClickListener((view, position, drawerItem) -> {
+                    showRadioFragment();
+                    return true;
+                });
+
+        searchItem = new PrimaryDrawerItem()
+                .withIdentifier(6)
                 .withName(R.string.search)
                 .withIcon(GoogleMaterial.Icon.gmd_search)
                 .withOnDrawerItemClickListener((view, position, drawerItem) -> {
                     showSearchFragment();
                     return true;
+                });
+
+        addPlaylistItem = new PrimaryDrawerItem()
+                .withIdentifier(7)
+                .withName(R.string.create_playlist)
+                .withIcon(GoogleMaterial.Icon.gmd_add)
+                .withSelectable(false)
+                .withOnDrawerItemClickListener((view, position, drawerItem) -> {
+                    onAddPlaylistClicked();
+                    return false;
                 });
 
         drawer = new DrawerBuilder().withActivity(this)
@@ -242,20 +269,42 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
                 .addDrawerItems(
                         myAudioItem,
                         nowPlayingItem,
+                        radioItem,
                         searchItem,
-                        new SectionDrawerItem().withName(getString(R.string.playlists))
+                        new SectionDrawerItem().withName(getString(R.string.playlists)),
+                        addPlaylistItem
                 )
                 .addStickyDrawerItems(settingsItem, aboutItem)
                 .build();
 
         drawer.setOnDrawerItemLongClickListener((view, position, drawerItem) -> {
             Object tag = drawerItem.getTag();
-            if(tag != null && tag instanceof VkApiAlbum){
+            if (tag != null && tag instanceof VkApiAlbum) {
                 onPlaylistItemLongClicked((VkApiAlbum) tag);
                 return true;
             }
             return false;
         });
+    }
+
+    private void onAddPlaylistClicked() {
+        View alertView = LayoutInflater.from(this).inflate(R.layout.layout_dialog_createplaylist, null, false);
+        EditText playlistTitle = (EditText) alertView.findViewById(R.id.playlist_title);
+
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.create_playlist)
+                .setView(alertView)
+                .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+
+                    VKApi.audio().addAlbum(VKParameters.from("title", playlistTitle.getText())).executeWithListener(new VKRequest.VKRequestListener() {
+                        @Override
+                        public void onComplete(VKResponse response) {
+                            loadPlaylists();
+                        }
+                    });
+
+                })
+                .show();
     }
 
     private void onPlaylistItemLongClicked(VkApiAlbum playlist) {
@@ -366,7 +415,7 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
         drawer.closeDrawer();
     }
 
-    private void showRadioFragment(){
+    private void showRadioFragment() {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.content_main, radioFragment, PlaybackQueueFragment.class.getName())
                 .commit();
@@ -374,7 +423,7 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
         drawer.closeDrawer();
     }
 
-    public void startRadio(@Nullable VKApiAudio radioTrack){
+    public void startRadio(@Nullable VKApiAudio radioTrack) {
         showRadioFragment();
         radioFragment.setRadioTrack(radioTrack);
         radioFragment.setStartRadioWhenShown(true);

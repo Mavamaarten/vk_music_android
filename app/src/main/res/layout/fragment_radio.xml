@@ -17,6 +17,11 @@
             android:indeterminate="true"
             android:visibility="gone"/>
 
+        <include
+            android:id="@+id/no_data"
+            android:visibility="gone"
+            layout="@layout/layout_view_no_data"/>
+
     </FrameLayout>
 
 </layout>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:app="http://schemas.android.com/apk/res-auto">
+
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                  android:layout_width="match_parent"
+                  android:layout_height="match_parent"
+                  android:orientation="vertical"
+        android:gravity="center">
+
+        <com.mikepenz.iconics.view.IconicsImageView
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            app:iiv_color="@color/md_grey_500"
+            app:iiv_icon="gmd-cloud-off"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/no_tracks_found"/>
+
+    </LinearLayout>
+
+</layout>

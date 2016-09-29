@@ -26,4 +26,7 @@
     <string name="radio">Radio</string>
     <string name="no_similar_tracks">No similar tracks found</string>
     <string name="error_loading_radio">Error loading radio</string>
+    <string name="create_playlist">Create playlist</string>
+    <string name="playlist_title">Playlist title</string>
+    <string name="no_tracks_found">No tracks found</string>
 </resources>

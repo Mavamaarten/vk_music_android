@@ -1,15 +1,26 @@
 <layout xmlns:tools="http://schemas.android.com/tools">
 
     <android.support.v4.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/swiperefresh"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:context="com.icapps.vkmusic.fragment.MyAudioFragment">
+                                                  android:id="@+id/swiperefresh"
+                                                  android:layout_width="match_parent"
+                                                  android:layout_height="match_parent"
+                                                  tools:context="com.icapps.vkmusic.fragment.MyAudioFragment">
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/rcv_audio"
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:layout_height="match_parent">
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/rcv_audio"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+
+            <include
+                android:id="@+id/no_data"
+                android:visibility="gone"
+                layout="@layout/layout_view_no_data"/>
+
+        </FrameLayout>
 
     </android.support.v4.widget.SwipeRefreshLayout>
 
