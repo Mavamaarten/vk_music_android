@@ -33,6 +33,9 @@
 
         <service android:name=".service.MusicService"/>
 
+        <meta-data
+            android:name="io.fabric.ApiKey"
+            android:value="da851e82277f44c5fad9ae40ae6f297c46e7b687" />
     </application>
 
 </manifest>

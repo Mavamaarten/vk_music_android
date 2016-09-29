@@ -31,8 +31,8 @@ public class LoginActivity extends BaseActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if(VKSdk.isLoggedIn()){
-            createUserComponentAndLaunchMainActivity(VKAccessToken.currentToken());
+        if (VKSdk.isLoggedIn()) {
+            createUserComponentAndLaunchMainActivity();
             return;
         }
 
@@ -42,15 +42,15 @@ public class LoginActivity extends BaseActivity {
 
     @Override
     protected void inject() {
-
+        // Nothing to inject
     }
 
     @Override
     protected void onActivityResult(final int requestCode, int resultCode, Intent data) {
         if (!VKSdk.onActivityResult(requestCode, resultCode, data, new VKCallback<VKAccessToken>() {
             @Override
-            public void onResult(final VKAccessToken res) {
-                createUserComponentAndLaunchMainActivity(res);
+            public void onResult(final VKAccessToken accessToken) {
+                createUserComponentAndLaunchMainActivity();
             }
 
             @Override
@@ -66,17 +66,20 @@ public class LoginActivity extends BaseActivity {
     }
 
     @SuppressWarnings("unchecked")
-    private void createUserComponentAndLaunchMainActivity(final VKAccessToken token){
+    private void createUserComponentAndLaunchMainActivity() {
         VKApi.users().get(VKParameters.from(VKApiConst.FIELDS, "photo_big")).executeWithListener(new VKRequest.VKRequestListener() {
             @Override
             public void onComplete(VKResponse response) {
                 VKList<VKApiUser> users = (VKList<VKApiUser>) response.parsedModel;
 
-                ((VkApplication) getApplication()).createUserComponent(token, users.get(0));
+                ((VkApplication) getApplication()).createUserComponent(users.get(0));
 
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(intent);
+
+                overridePendingTransition(0, 0);
+
                 finish();
             }
         });

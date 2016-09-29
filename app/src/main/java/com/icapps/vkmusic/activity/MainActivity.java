@@ -46,7 +46,6 @@ import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
 import com.mikepenz.materialdrawer.model.ProfileSettingDrawerItem;
 import com.mikepenz.materialdrawer.model.SectionDrawerItem;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
-import com.vk.sdk.VKAccessToken;
 import com.vk.sdk.VKSdk;
 import com.vk.sdk.api.VKApi;
 import com.vk.sdk.api.VKApiConst;
@@ -56,8 +55,6 @@ import com.vk.sdk.api.VKResponse;
 import com.vk.sdk.api.model.VKApiAudio;
 import com.vk.sdk.api.model.VKApiUser;
 import com.vk.sdk.api.model.VkAudioArray;
-
-import org.json.JSONException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,7 +67,6 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
     public static final int FRAG_QUEUE = 1;
     public static final int FRAG_NOW_PLAYING = 2;
 
-    @Inject VKAccessToken accessToken;
     @Inject VKApiUser user;
     @Inject AlbumArtProvider albumArtProvider;
     @Inject VkAudioArray playbackQueue;
@@ -191,7 +187,7 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
         String photo = "https://vk.com/images/camera_100.png";
         try {
             photo = user.fields.getString("photo_big");
-        } catch (JSONException ignored) {
+        } catch (Exception ignored) {
         }
 
         AccountHeader header = new AccountHeaderBuilder()

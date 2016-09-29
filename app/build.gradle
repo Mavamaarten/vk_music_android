@@ -1,4 +1,14 @@
+buildscript {
+    repositories {
+        maven { url 'https://maven.fabric.io/public' }
+    }
+
+    dependencies {
+        classpath 'io.fabric.tools:gradle:1.+'
+    }
+}
 apply plugin: 'com.android.application'
+apply plugin: 'io.fabric'
 apply plugin: 'android-apt'
 apply plugin: 'me.tatarka.retrolambda'
 
@@ -31,6 +41,7 @@ android {
 
 repositories {
     maven { url "https://clojars.org/repo/" }
+    maven { url 'https://maven.fabric.io/public' }
 }
 
 dependencies {
@@ -63,4 +74,7 @@ dependencies {
     compile 'io.reactivex:rxandroid:1.2.1'
     apt 'com.google.dagger:dagger-compiler:2.6.1'
     provided 'frankiesardo:icepick-processor:3.2.0'
+    compile('com.crashlytics.sdk.android:crashlytics:2.6.4@aar') {
+        transitive = true;
+    }
 }

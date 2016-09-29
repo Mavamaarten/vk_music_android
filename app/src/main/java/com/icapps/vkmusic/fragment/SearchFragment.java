@@ -18,7 +18,6 @@ import com.icapps.vkmusic.databinding.FragmentSearchBinding;
 import com.icapps.vkmusic.dialog.AddTrackToPlaylistDialogFragment;
 import com.icapps.vkmusic.service.MusicService;
 import com.icapps.vkmusic.util.DownloadUtil;
-import com.vk.sdk.VKAccessToken;
 import com.vk.sdk.api.VKApi;
 import com.vk.sdk.api.VKApiConst;
 import com.vk.sdk.api.VKError;
@@ -28,11 +27,7 @@ import com.vk.sdk.api.VKResponse;
 import com.vk.sdk.api.model.VKApiAudio;
 import com.vk.sdk.api.model.VkAudioArray;
 
-import javax.inject.Inject;
-
 public class SearchFragment extends BaseMusicFragment implements VkAudioAdapter.VkAudioAdapterListener {
-    @Inject VKAccessToken accessToken;
-
     private FragmentSearchBinding binding;
     private VkAudioAdapter adapter;
     private VkAudioArray audioArray;

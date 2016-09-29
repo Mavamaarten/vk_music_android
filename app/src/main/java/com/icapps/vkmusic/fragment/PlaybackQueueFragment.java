@@ -21,14 +21,9 @@ import com.icapps.vkmusic.databinding.FragmentPlaybackqueueBinding;
 import com.icapps.vkmusic.dialog.AddTrackToPlaylistDialogFragment;
 import com.icapps.vkmusic.service.MusicService;
 import com.icapps.vkmusic.util.DownloadUtil;
-import com.vk.sdk.VKAccessToken;
 import com.vk.sdk.api.model.VKApiAudio;
 
-import javax.inject.Inject;
-
 public class PlaybackQueueFragment extends BaseMusicFragment implements VkAudioAdapter.VkAudioAdapterListener, StartDragListener {
-    @Inject VKAccessToken accessToken;
-
     private FragmentPlaybackqueueBinding binding;
     private VkAudioAdapter adapter;
     private ItemTouchHelper touchHelper;

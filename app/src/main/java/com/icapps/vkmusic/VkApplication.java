@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
+import com.crashlytics.android.Crashlytics;
 import com.icapps.vkmusic.activity.LoginActivity;
 import com.icapps.vkmusic.di.application.AppComponent;
 import com.icapps.vkmusic.di.application.AppModule;
@@ -22,6 +23,7 @@ import com.vk.sdk.VKAccessTokenTracker;
 import com.vk.sdk.VKSdk;
 import com.vk.sdk.api.model.VKApiUser;
 
+import io.fabric.sdk.android.Fabric;
 import io.paperdb.Paper;
 
 /**
@@ -44,6 +46,9 @@ public class VkApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        if (!BuildConfig.DEBUG) {
+            Fabric.with(this, new Crashlytics());
+        }
 
         appComponent = DaggerAppComponent.builder()
                 .appModule(new AppModule(this))
@@ -74,8 +79,8 @@ public class VkApplication extends Application {
         return userComponent;
     }
 
-    public UserComponent createUserComponent(VKAccessToken accessToken, VKApiUser user) {
-        userComponent = appComponent.plus(new UserModule(accessToken, user));
+    public UserComponent createUserComponent(VKApiUser user) {
+        userComponent = appComponent.plus(new UserModule(user));
         return userComponent;
     }
 

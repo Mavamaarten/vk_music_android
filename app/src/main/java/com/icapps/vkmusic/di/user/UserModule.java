@@ -1,6 +1,5 @@
 package com.icapps.vkmusic.di.user;
 
-import com.vk.sdk.VKAccessToken;
 import com.vk.sdk.api.model.VKApiUser;
 
 import dagger.Module;
@@ -12,18 +11,10 @@ import dagger.Provides;
 @Module
 public class UserModule {
 
-    private final VKAccessToken accessToken;
     private final VKApiUser user;
 
-    public UserModule(VKAccessToken accessToken, VKApiUser user) {
-        this.accessToken = accessToken;
+    public UserModule(VKApiUser user) {
         this.user = user;
-    }
-
-    @Provides
-    @UserScope
-    VKAccessToken provideAccessToken() {
-        return accessToken;
     }
 
     @Provides

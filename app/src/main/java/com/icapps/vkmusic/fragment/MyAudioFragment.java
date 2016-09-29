@@ -18,7 +18,6 @@ import com.icapps.vkmusic.databinding.FragmentMyAudioBinding;
 import com.icapps.vkmusic.dialog.AddTrackToPlaylistDialogFragment;
 import com.icapps.vkmusic.service.MusicService;
 import com.icapps.vkmusic.util.DownloadUtil;
-import com.vk.sdk.VKAccessToken;
 import com.vk.sdk.api.VKApi;
 import com.vk.sdk.api.VKError;
 import com.vk.sdk.api.VKRequest;
@@ -26,12 +25,9 @@ import com.vk.sdk.api.VKResponse;
 import com.vk.sdk.api.model.VKApiAudio;
 import com.vk.sdk.api.model.VkAudioArray;
 
-import javax.inject.Inject;
-
 import icepick.State;
 
 public class MyAudioFragment extends BaseMusicFragment implements VkAudioAdapter.VkAudioAdapterListener {
-    @Inject VKAccessToken accessToken;
     @State VkAudioArray audioArray;
 
     private FragmentMyAudioBinding binding;
