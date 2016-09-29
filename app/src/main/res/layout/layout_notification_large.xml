@@ -14,7 +14,7 @@
 
     <TextView
         android:id="@+id/title"
-        style="@style/TextAppearance.AppCompat.Subhead"
+        style="@style/NotificationTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="2dp"
@@ -23,7 +23,6 @@
         android:layout_toStartOf="@+id/dismiss"
         android:ellipsize="end"
         android:maxLines="2"
-        android:textColor="@android:color/black"
         tools:text="What if I go?"/>
 
     <ImageView
@@ -37,7 +36,7 @@
 
     <TextView
         android:id="@+id/artist"
-        style="@style/TextAppearance.AppCompat.Caption"
+        style="@style/NotificationText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
@@ -45,7 +44,6 @@
         android:layout_toEndOf="@id/album_large"
         android:ellipsize="end"
         android:maxLines="1"
-        android:textColor="@color/md_grey_700"
         tools:text="Mura Masa"/>
 
     <LinearLayout

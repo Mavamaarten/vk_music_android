@@ -3,7 +3,6 @@ package com.icapps.vkmusic.fragment;
 import android.databinding.DataBindingUtil;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.support.graphics.drawable.VectorDrawableCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.view.LayoutInflater;
@@ -16,11 +15,8 @@ import com.icapps.vkmusic.R;
 import com.icapps.vkmusic.VkApplication;
 import com.icapps.vkmusic.base.BaseMusicFragment;
 import com.icapps.vkmusic.databinding.FragmentNowPlayingBinding;
-import com.icapps.vkmusic.model.albumart.AlbumArtProvider;
 import com.icapps.vkmusic.service.MusicService;
 import com.vk.sdk.api.model.VKApiAudio;
-
-import javax.inject.Inject;
 
 public class NowPlayingFragment extends BaseMusicFragment {
     private FragmentNowPlayingBinding binding;
@@ -33,7 +29,7 @@ public class NowPlayingFragment extends BaseMusicFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_now_playing, container, false);
 
-        placeholderDrawable = VectorDrawableCompat.create(getResources(), R.drawable.ic_album_placeholder, null);
+        placeholderDrawable = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_album_placeholder, null);
         DrawableCompat.setTint(placeholderDrawable, ResourcesCompat.getColor(getResources(), R.color.md_grey_600, null));
         binding.albumSmall.setImageDrawable(placeholderDrawable);
         binding.albumLarge.setImageDrawable(placeholderDrawable);
@@ -108,13 +104,13 @@ public class NowPlayingFragment extends BaseMusicFragment {
     protected void onCurrentAlbumArtChanged(String currentAlbumArtUrl) {
         Glide.with(this)
                 .load(currentAlbumArtUrl)
-                .error(R.drawable.ic_album_placeholder)
+                .error(placeholderDrawable)
                 .placeholder(R.drawable.ic_album_placeholder)
                 .into(binding.albumLarge);
 
         Glide.with(this)
                 .load(currentAlbumArtUrl)
-                .error(R.drawable.ic_album_placeholder)
+                .error(placeholderDrawable)
                 .placeholder(R.drawable.ic_album_placeholder)
                 .into(binding.albumSmall);
     }

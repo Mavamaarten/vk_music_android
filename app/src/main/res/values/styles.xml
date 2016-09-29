@@ -17,4 +17,13 @@
         <item name="android:textColor">@android:color/white</item>
     </style>
 
+    <style name="NotificationTitle">
+        <item name="android:textColor">@color/md_black_1000</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="NotificationText">
+        <item name="android:textColor">@color/md_grey_600</item>
+    </style>
+
 </resources>

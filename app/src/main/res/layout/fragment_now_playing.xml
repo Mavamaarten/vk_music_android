@@ -90,7 +90,7 @@
                 android:layout_centerVertical="true"
                 android:layout_marginEnd="16dp"
                 android:padding="2dp"
-                android:src="@{ (playbackState == PlaybackState.PLAYING || playbackState == PlaybackState.PREPARING) ? @drawable/ic_pause : @drawable/ic_play }"/>
+                android:src="@{ (playbackState == PlaybackState.PLAYING || playbackState == PlaybackState.PREPARING) ? @drawable/ic_pause_bitmap : @drawable/ic_play_bitmap }"/>
 
         </RelativeLayout>
 
