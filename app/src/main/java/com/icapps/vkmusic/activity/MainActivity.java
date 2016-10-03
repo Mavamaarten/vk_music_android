@@ -431,7 +431,10 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
     }
 
     public void startRadio(@Nullable VKApiAudio radioTrack) {
+        drawer.setSelection(radioItem, false);
+
         showRadioFragment();
+
         radioFragment.setRadioTrack(radioTrack);
         radioFragment.setStartRadioWhenShown(true);
     }
