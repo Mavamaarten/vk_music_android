@@ -208,7 +208,6 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
                 .build();
 
         PrimaryDrawerItem aboutItem = new PrimaryDrawerItem()
-                .withIdentifier(1)
                 .withName(getString(R.string.about))
                 .withSelectable(false)
                 .withOnDrawerItemClickListener((view, position, drawerItem) -> {
@@ -219,14 +218,7 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
                 })
                 .withIcon(GoogleMaterial.Icon.gmd_info);
 
-        PrimaryDrawerItem settingsItem = new PrimaryDrawerItem()
-                .withIdentifier(2)
-                .withName(R.string.settings)
-                .withSelectable(false)
-                .withIcon(GoogleMaterial.Icon.gmd_settings);
-
         myAudioItem = new PrimaryDrawerItem()
-                .withIdentifier(3)
                 .withName(R.string.my_audio)
                 .withIcon(GoogleMaterial.Icon.gmd_music_note)
                 .withOnDrawerItemClickListener((view, position, drawerItem) -> {
@@ -236,7 +228,6 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
                 .withSetSelected(true);
 
         PrimaryDrawerItem nowPlayingItem = new PrimaryDrawerItem()
-                .withIdentifier(4)
                 .withName(R.string.playback_queue)
                 .withIcon(GoogleMaterial.Icon.gmd_playlist_play)
                 .withOnDrawerItemClickListener((view, position, drawerItem) -> {
@@ -245,7 +236,6 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
                 });
 
         radioItem = new PrimaryDrawerItem()
-                .withIdentifier(5)
                 .withName(R.string.radio)
                 .withIcon(GoogleMaterial.Icon.gmd_radio)
                 .withOnDrawerItemClickListener((view, position, drawerItem) -> {
@@ -254,7 +244,6 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
                 });
 
         searchItem = new PrimaryDrawerItem()
-                .withIdentifier(6)
                 .withName(R.string.search)
                 .withIcon(GoogleMaterial.Icon.gmd_search)
                 .withOnDrawerItemClickListener((view, position, drawerItem) -> {
@@ -263,7 +252,6 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
                 });
 
         addPlaylistItem = new PrimaryDrawerItem()
-                .withIdentifier(7)
                 .withName(R.string.create_playlist)
                 .withIcon(GoogleMaterial.Icon.gmd_add)
                 .withSelectable(false)
@@ -283,7 +271,7 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
                         new SectionDrawerItem().withName(getString(R.string.playlists)),
                         addPlaylistItem
                 )
-                .addStickyDrawerItems(settingsItem, aboutItem)
+                .addStickyDrawerItems(aboutItem)
                 .build();
 
         drawer.setOnDrawerItemLongClickListener((view, position, drawerItem) -> {

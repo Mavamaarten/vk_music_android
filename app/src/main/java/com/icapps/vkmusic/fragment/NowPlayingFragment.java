@@ -2,6 +2,7 @@ package com.icapps.vkmusic.fragment;
 
 import android.databinding.DataBindingUtil;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
@@ -17,7 +18,11 @@ import com.icapps.vkmusic.VkApplication;
 import com.icapps.vkmusic.base.BaseMusicFragment;
 import com.icapps.vkmusic.databinding.FragmentNowPlayingBinding;
 import com.icapps.vkmusic.service.MusicService;
+import com.icapps.vkmusic.util.GraphicsUtil;
 import com.vk.sdk.api.model.VKApiAudio;
+
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 public class NowPlayingFragment extends BaseMusicFragment {
     private FragmentNowPlayingBinding binding;
@@ -102,5 +107,15 @@ public class NowPlayingFragment extends BaseMusicFragment {
 
         transitionDrawableSmall.startTransition(getResources().getInteger(android.R.integer.config_mediumAnimTime));
         transitionDrawableLarge.startTransition(getResources().getInteger(android.R.integer.config_mediumAnimTime));
+
+        GraphicsUtil.isBottomDark(currentAlbumArt)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(isDark -> {
+                    binding.playbackPositionLabel.setTextColor(isDark ? Color.WHITE : Color.BLACK);
+                    binding.playbackRemainingLabel.setTextColor(isDark ? Color.WHITE : Color.BLACK);
+
+                    System.out.println("Dark: " + isDark);
+                });
     }
 }
