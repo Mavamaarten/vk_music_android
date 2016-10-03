@@ -34,7 +34,9 @@ public class PlaybackQueueFragment extends BaseMusicFragment implements VkAudioA
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        adapter = new VkAudioAdapter(playbackQueue, this, getContext(), true, this);
+        adapter = new VkAudioAdapter(playbackQueue, this, getContext());
+        adapter.setReorderable(true);
+        adapter.setStartDragListener(this);
     }
 
     @Override

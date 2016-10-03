@@ -28,6 +28,8 @@ import com.vk.sdk.api.VKResponse;
 import com.vk.sdk.api.model.VKApiAudio;
 import com.vk.sdk.api.model.VkAudioArray;
 
+import org.json.JSONException;
+
 public class PlaylistFragment extends BaseMusicFragment implements VkAudioAdapter.VkAudioAdapterListener {
     public static final String KEY_PLAYLIST = "PLAYLIST";
 
@@ -44,7 +46,8 @@ public class PlaylistFragment extends BaseMusicFragment implements VkAudioAdapte
         super.onCreate(savedInstanceState);
 
         audioArray = new VkAudioArray();
-        adapter = new VkAudioAdapter(audioArray, this, getContext(), false, null);
+        adapter = new VkAudioAdapter(audioArray, this, getContext());
+        adapter.setIsPlaylist(true);
 
         playlist = getArguments().getParcelable(KEY_PLAYLIST);
     }
@@ -146,10 +149,37 @@ public class PlaylistFragment extends BaseMusicFragment implements VkAudioAdapte
                 ((MainActivity) getActivity()).startRadio(audio);
                 break;
 
+            case R.id.action_remove_from_playlist:
+                removeTrackFromPlaylist(audio, position);
+                break;
+
             case R.id.action_download:
                 DownloadUtil.downloadTrack(getContext(), audio);
                 break;
         }
         return true;
+    }
+
+    private void removeTrackFromPlaylist(VKApiAudio audio, int position) {
+        VKApi.audio().delete(VKParameters.from("audio_id", audio.id, "owner_id", audio.owner_id)).executeWithListener(new VKRequest.VKRequestListener() {
+            @Override
+            public void onComplete(VKResponse response) {
+                try {
+                    int responseCode = response.json.getInt("response");
+                    if(responseCode == 1){
+                        audioArray.remove(position);
+                        adapter.notifyItemRemoved(position);
+                        Snackbar.make(binding.getRoot(), "Track removed", Snackbar.LENGTH_SHORT).show();
+                    }
+                } catch (JSONException e) {
+                    onError(null);
+                }
+            }
+
+            @Override
+            public void onError(VKError error) {
+                Snackbar.make(binding.getRoot(), "Error while deleting this track", Snackbar.LENGTH_LONG).show();
+            }
+        });
     }
 }

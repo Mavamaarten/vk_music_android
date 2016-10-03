@@ -40,7 +40,7 @@ public class SearchFragment extends BaseMusicFragment implements VkAudioAdapter.
         super.onCreate(savedInstanceState);
 
         audioArray = new VkAudioArray();
-        adapter = new VkAudioAdapter(audioArray, this, getContext(), false, null);
+        adapter = new VkAudioAdapter(audioArray, this, getContext());
     }
 
     public void search(String searchQuery) {

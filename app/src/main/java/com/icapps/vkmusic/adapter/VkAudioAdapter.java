@@ -3,12 +3,12 @@ package com.icapps.vkmusic.adapter;
 import android.content.Context;
 import android.content.res.Resources;
 import android.databinding.DataBindingUtil;
-import android.support.annotation.Nullable;
 import android.support.v4.content.res.ResourcesCompat;
-import android.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
+import android.widget.PopupMenu;
 
 import com.icapps.vkmusic.R;
 import com.icapps.vkmusic.databinding.LayoutItemAudioBinding;
@@ -24,16 +24,32 @@ public class VkAudioAdapter extends RecyclerView.Adapter<VkAudioAdapter.ViewHold
     private final VkAudioArray audioArray;
     private final VkAudioAdapterListener listener;
     private final Resources resources;
-    private final boolean reorderable;
-    private final StartDragListener startDragListener;
 
+    private boolean reorderable;
+    private boolean isPlaylist;
+    private boolean isMyAudio;
+    private StartDragListener startDragListener;
     private VKApiAudio currentAudio;
 
-    public VkAudioAdapter(VkAudioArray audioArray, VkAudioAdapterListener listener, Context context, boolean reorderable, @Nullable StartDragListener startDragListener) {
+    public VkAudioAdapter(VkAudioArray audioArray, VkAudioAdapterListener listener, Context context) {
         this.audioArray = audioArray;
         this.listener = listener;
         this.resources = context.getResources();
+    }
+
+    public void setReorderable(boolean reorderable) {
         this.reorderable = reorderable;
+    }
+
+    public void setIsPlaylist(boolean playlist) {
+        isPlaylist = playlist;
+    }
+
+    public void setIsMyAudio(boolean myAudio) {
+        isMyAudio = myAudio;
+    }
+
+    public void setStartDragListener(StartDragListener startDragListener) {
         this.startDragListener = startDragListener;
     }
 
@@ -74,18 +90,18 @@ public class VkAudioAdapter extends RecyclerView.Adapter<VkAudioAdapter.ViewHold
         notifyItemMoved(fromPosition, toPosition);
 
         VKApiAudio movedItem = audioArray.get(toPosition);
-        if(currentAudio != null && movedItem.id == currentAudio.id){
+        if (currentAudio != null && movedItem.id == currentAudio.id) {
             listener.onCurrentAudioMoved(toPosition);
         }
     }
 
     @Override
     public void onItemDismiss(int position) {
-        VKApiAudio currentAudio = audioArray.get(position);
-        if(currentAudio.getId() != this.currentAudio.getId()){
-            audioArray.remove(position);
+        VKApiAudio dismissedAudio = audioArray.get(position);
+        if (currentAudio == null) {
             notifyItemRemoved(position);
-        } else {
+            audioArray.remove(position);
+        } else if (dismissedAudio.getId() != this.currentAudio.getId()) {
             notifyItemChanged(position);
         }
     }
@@ -100,14 +116,9 @@ public class VkAudioAdapter extends RecyclerView.Adapter<VkAudioAdapter.ViewHold
 
         void bind(VKApiAudio audio) {
             binding.getRoot().setOnClickListener(v -> listener.onAudioClicked(audio, getAdapterPosition()));
-            binding.audioOptions.setOnClickListener(v -> {
-                PopupMenu menu = new PopupMenu(v.getContext(), v);
-                menu.getMenuInflater().inflate(R.menu.menu_audio_options, menu.getMenu());
-                menu.setOnMenuItemClickListener(item -> listener.onAudioMenuItemClicked(audio, getAdapterPosition(), item.getItemId()));
-                menu.show();
-            });
+            binding.audioOptions.setOnClickListener(v -> showPopupMenu(v, audio));
             binding.dragHandle.setOnTouchListener((v, event) -> {
-                if(startDragListener == null){
+                if (startDragListener == null) {
                     return false;
                 }
                 startDragListener.startDrag(this);
@@ -126,6 +137,17 @@ public class VkAudioAdapter extends RecyclerView.Adapter<VkAudioAdapter.ViewHold
                         null
                 );
             }
+        }
+
+        private void showPopupMenu(View v, VKApiAudio audio) {
+            PopupMenu menu = new PopupMenu(v.getContext(), v);
+            menu.getMenuInflater().inflate(R.menu.menu_audio_options, menu.getMenu());
+
+            menu.getMenu().findItem(R.id.action_remove_from_playlist).setVisible(isPlaylist);
+            menu.getMenu().findItem(R.id.action_remove_from_my_audio).setVisible(isMyAudio);
+
+            menu.setOnMenuItemClickListener(item -> listener.onAudioMenuItemClicked(audio, getAdapterPosition(), item.getItemId()));
+            menu.show();
         }
     }
 

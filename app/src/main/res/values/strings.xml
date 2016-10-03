@@ -29,4 +29,6 @@
     <string name="create_playlist">Create playlist</string>
     <string name="playlist_title">Playlist title</string>
     <string name="no_tracks_found">No tracks found</string>
+    <string name="remove_from_playlist">Remove from playlist</string>
+    <string name="remove_from_your_music">Remove from your music</string>
 </resources>

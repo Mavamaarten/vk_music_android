@@ -106,7 +106,7 @@ public class RadioFragment extends BaseMusicFragment implements VkAudioAdapter.V
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_radio, container, false);
 
-        adapter = new VkAudioAdapter(audioArray, this, getContext(), false, null);
+        adapter = new VkAudioAdapter(audioArray, this, getContext());
         binding.rcvAudio.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
         binding.rcvAudio.setAdapter(adapter);
 
