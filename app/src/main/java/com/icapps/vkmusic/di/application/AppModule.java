@@ -3,6 +3,7 @@ package com.icapps.vkmusic.di.application;
 import android.app.Application;
 import android.content.Context;
 import android.databinding.ObservableField;
+import android.graphics.Bitmap;
 
 import com.google.gson.Gson;
 import com.icapps.vkmusic.model.albumart.AlbumArtProvider;
@@ -54,8 +55,8 @@ public class AppModule {
 
     @Provides
     @Singleton
-    ObservableField<String> provideCurrentAlbumArtUrl(){
-        return Paper.book().read("currentAlbumArtUrl", new ObservableField<>());
+    ObservableField<Bitmap> provideCurrentAlbumArt(){
+        return new ObservableField<>();
     }
 
     @Provides

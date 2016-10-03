@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.databinding.Observable;
 import android.databinding.ObservableField;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
@@ -23,7 +24,7 @@ import static android.content.Context.BIND_AUTO_CREATE;
  */
 public abstract class BaseMusicFragment extends BaseFragment implements ServiceConnection, MusicService.MusicServiceListener {
     @Inject public ObservableField<VKApiAudio> currentAudio;
-    @Inject public ObservableField<String> currentAlbumArtUrl;
+    @Inject public ObservableField<Bitmap> currentAlbumArt;
     @Inject public VkAudioArray playbackQueue;
 
     private Observable.OnPropertyChangedCallback currentAudioCallback;
@@ -53,7 +54,7 @@ public abstract class BaseMusicFragment extends BaseFragment implements ServiceC
         currentAlbumArtCallback = new Observable.OnPropertyChangedCallback() {
             @Override
             public void onPropertyChanged(Observable observable, int i) {
-                onCurrentAlbumArtChanged(currentAlbumArtUrl.get());
+                onCurrentAlbumArtChanged(currentAlbumArt.get());
             }
         };
     }
@@ -64,7 +65,22 @@ public abstract class BaseMusicFragment extends BaseFragment implements ServiceC
         Intent intent = new Intent(getContext(), MusicService.class);
         getContext().bindService(intent, this, BIND_AUTO_CREATE);
         currentAudio.addOnPropertyChangedCallback(currentAudioCallback);
-        currentAlbumArtUrl.addOnPropertyChangedCallback(currentAlbumArtCallback);
+        currentAlbumArt.addOnPropertyChangedCallback(currentAlbumArtCallback);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        VKApiAudio audio = currentAudio.get();
+        if(audio != null){
+            onCurrentAudioChanged(audio);
+        }
+
+        Bitmap albumArt = currentAlbumArt.get();
+        if(albumArt != null){
+            onCurrentAlbumArtChanged(albumArt);
+        }
     }
 
     @Override
@@ -73,7 +89,7 @@ public abstract class BaseMusicFragment extends BaseFragment implements ServiceC
         musicService.removeMusicServiceListener(this);
         getContext().unbindService(this);
         currentAudio.removeOnPropertyChangedCallback(currentAudioCallback);
-        currentAlbumArtUrl.removeOnPropertyChangedCallback(currentAlbumArtCallback);
+        currentAlbumArt.removeOnPropertyChangedCallback(currentAlbumArtCallback);
     }
 
     @Override
@@ -98,7 +114,7 @@ public abstract class BaseMusicFragment extends BaseFragment implements ServiceC
         // Implement in subclass (optional)
     }
 
-    protected void onCurrentAlbumArtChanged(String currentAlbumArtUrl) {
+    protected void onCurrentAlbumArtChanged(Bitmap currentAlbumArt) {
         // Implement in subclass (optional)
     }
 

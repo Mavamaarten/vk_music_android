@@ -42,7 +42,8 @@
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"
                 android:background="@color/md_grey_300"
-                android:scaleType="centerCrop"/>
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_album_placeholder"/>
 
             <ProgressBar
                 android:id="@+id/preparing_indicator"
@@ -108,7 +109,8 @@
             android:layout_above="@+id/now_playing_controls"
             android:layout_below="@id/separator"
             android:background="@color/md_grey_200"
-            android:scaleType="centerCrop"/>
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_album_placeholder"/>
 
         <TextView
             android:id="@+id/playback_position_label"

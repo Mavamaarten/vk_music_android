@@ -2,9 +2,9 @@ package com.icapps.vkmusic.service;
 
 import android.app.Service;
 import android.content.Intent;
-import android.databinding.Observable;
 import android.databinding.ObservableField;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
@@ -46,11 +46,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     @Inject VkAudioArray playbackQueue;
     @Inject ObservableField<VKApiAudio> currentAudio;
-    @Inject ObservableField<String> currentAlbumArtUrl;
+    @Inject ObservableField<Bitmap> currentAlbumArt;
     @Inject AlbumArtProvider albumArtProvider;
-
-    private Observable.OnPropertyChangedCallback currentAudioCallback;
-    private Observable.OnPropertyChangedCallback currentAlbumArtCallback;
 
     private final IBinder binder = new MusicServiceBinder();
     private final List<MusicServiceListener> listeners = new ArrayList<>();
@@ -82,42 +79,25 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             notificationManager.updateNotification(currentAudio.get());
         }
 
-        currentAudioCallback = new Observable.OnPropertyChangedCallback() {
-            @Override
-            public void onPropertyChanged(Observable observable, int i) {
-                final VKApiAudio audio = currentAudio.get();
-                fetchAlbumArt(audio);
-                notificationManager.updateNotification(audio);
-                saveCurrentAudio();
-            }
-        };
-        currentAlbumArtCallback = new Observable.OnPropertyChangedCallback() {
-            @Override
-            public void onPropertyChanged(Observable observable, int i) {
-                Glide.with(MusicService.this)
-                        .load(currentAlbumArtUrl.get())
-                        .asBitmap()
-                        .error(R.drawable.ic_album_placeholder)
-                        .into(new SimpleTarget<Bitmap>() {
-                            @Override
-                            public void onResourceReady(Bitmap bitmap, GlideAnimation<? super Bitmap> glideAnimation) {
-                                notificationManager.updateNotificationBitmap(bitmap);
-                            }
-                        });
-                saveCurrentAlbumArtUrl();
-            }
-        };
-
-        currentAudio.addOnPropertyChangedCallback(currentAudioCallback);
-        currentAlbumArtUrl.addOnPropertyChangedCallback(currentAlbumArtCallback);
+        if(currentAlbumArt.get() == null){
+            Glide.with(MusicService.this)
+                    .load((String)Paper.book().read("currentAlbumArtUrl"))
+                    .asBitmap()
+                    .error(R.drawable.ic_album_placeholder)
+                    .into(new SimpleTarget<Bitmap>() {
+                        @Override
+                        public void onResourceReady(Bitmap bitmap, GlideAnimation<? super Bitmap> glideAnimation) {
+                            currentAlbumArt.set(bitmap);
+                            notificationManager.updateNotificationBitmap(bitmap);
+                        }
+                    });
+        }
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         mediaPlayer.release();
-        currentAudio.removeOnPropertyChangedCallback(currentAudioCallback);
-        currentAlbumArtUrl.removeOnPropertyChangedCallback(currentAlbumArtCallback);
         System.out.println("MusicService destroyed");
     }
 
@@ -189,7 +169,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
      * @param position   the index of the track to play
      */
     public void playAudio(VkAudioArray audioArray, int position) {
-        if(audioArray.size() == 0 || position < 0 || position > audioArray.size() - 1){
+        if (audioArray.size() == 0 || position < 0 || position > audioArray.size() - 1) {
             return;
         }
 
@@ -218,12 +198,16 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             mediaPlayer.reset();
             mediaPlayer.setDataSource(audio.url);
             mediaPlayer.prepareAsync();
+
             currentAudio.set(audio);
+            saveCurrentAudio();
+
             setState(PlaybackState.PREPARING);
 
             notificationManager.createNotification();
-            notificationManager.updateNotification(currentAudio.get());
-            currentAlbumArtCallback.onPropertyChanged(currentAlbumArtUrl, 0);
+            notificationManager.updateNotification(audio);
+
+            loadAlbumArt(audio);
         } catch (IOException e) {
             for (MusicServiceListener listener : listeners) {
                 listener.onMusicServiceException(e);
@@ -270,6 +254,33 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         startPlaybackPositionUpdating();
     }
 
+    public void loadAlbumArt(VKApiAudio audio) {
+        Bitmap placeHolder = BitmapFactory.decodeResource(getResources(), R.drawable.ic_album_placeholder);
+
+        albumArtProvider.getAlbumArtUrl(audio.artist + " - " + audio.title)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(url -> {
+                    saveAlbumArtUrl(url);
+
+                    Glide.with(MusicService.this)
+                            .load(url)
+                            .asBitmap()
+                            .error(R.drawable.ic_album_placeholder)
+                            .into(new SimpleTarget<Bitmap>() {
+                                @Override
+                                public void onResourceReady(Bitmap bitmap, GlideAnimation<? super Bitmap> glideAnimation) {
+                                    currentAlbumArt.set(bitmap);
+                                    notificationManager.updateNotificationBitmap(bitmap);
+                                }
+                            });
+                }, throwable -> {
+                    saveAlbumArtUrl("");
+                    currentAlbumArt.set(placeHolder);
+                    notificationManager.updateNotificationBitmap(placeHolder);
+                });
+    }
+
     public void startPlaybackPositionUpdating() {
         if (playbackPositionThread != null) playbackPositionThread.interrupt();
         playbackPositionThread = new PlaybackPositionThread();
@@ -310,7 +321,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         if (currentIndex < playbackQueue.size() - 1) {
             VKApiAudio audio = playbackQueue.get(++currentIndex);
             playAudio(audio);
-        } else if(currentIndex > playbackQueue.size() && playbackQueue.size() > 0){
+        } else if (currentIndex > playbackQueue.size() && playbackQueue.size() > 0) {
             currentIndex = 0;
             VKApiAudio audio = playbackQueue.get(currentIndex);
             playAudio(audio);
@@ -321,7 +332,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         if ((currentIndex - 1) >= 0 && (currentIndex < playbackQueue.size())) {
             VKApiAudio audio = playbackQueue.get(--currentIndex);
             playAudio(audio);
-        } else if(currentIndex >= playbackQueue.size() && playbackQueue.size() > 0){
+        } else if (currentIndex >= playbackQueue.size() && playbackQueue.size() > 0) {
             currentIndex = 0;
             VKApiAudio audio = playbackQueue.get(currentIndex);
             playAudio(audio);
@@ -355,17 +366,6 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         }
     }
 
-    public void fetchAlbumArt(VKApiAudio audio) {
-        albumArtProvider.getAlbumArtUrl(audio.artist + " - " + audio.title)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(url -> {
-                    currentAlbumArtUrl.set(url);
-                }, throwable -> {
-                    currentAlbumArtUrl.set(null);
-                });
-    }
-
     public void savePlaybackQueue() {
         Paper.book().write("playbackQueue", playbackQueue);
     }
@@ -374,7 +374,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         Paper.book().write("currentAudio", currentAudio);
     }
 
-    public void saveCurrentAlbumArtUrl() {
+    public void saveAlbumArtUrl(String currentAlbumArtUrl) {
         Paper.book().write("currentAlbumArtUrl", currentAlbumArtUrl);
     }
 
