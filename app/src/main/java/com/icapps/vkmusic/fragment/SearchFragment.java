@@ -67,7 +67,7 @@ public class SearchFragment extends BaseMusicFragment implements VkAudioAdapter.
 
             @Override
             public void onError(VKError error) {
-                Snackbar.make(binding.rcvAudio, "Error loading search results", Snackbar.LENGTH_LONG);
+                Snackbar.make(binding.rcvAudio, R.string.error_loading_search, Snackbar.LENGTH_LONG);
                 binding.loadingIndicator.setVisibility(View.GONE);
             }
         });

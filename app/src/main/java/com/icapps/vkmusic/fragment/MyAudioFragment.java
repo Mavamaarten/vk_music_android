@@ -171,7 +171,7 @@ public class MyAudioFragment extends BaseMusicFragment implements VkAudioAdapter
                     if(responseCode == 1){
                         audioArray.remove(position);
                         adapter.notifyItemRemoved(position);
-                        Snackbar.make(binding.getRoot(), "Track removed", Snackbar.LENGTH_SHORT).show();
+                        Snackbar.make(binding.getRoot(), R.string.track_removed, Snackbar.LENGTH_SHORT).show();
                     }
                 } catch (JSONException e) {
                     onError(null);
@@ -180,7 +180,7 @@ public class MyAudioFragment extends BaseMusicFragment implements VkAudioAdapter
 
             @Override
             public void onError(VKError error) {
-                Snackbar.make(binding.getRoot(), "Error while deleting this track", Snackbar.LENGTH_LONG).show();
+                Snackbar.make(binding.getRoot(), R.string.error_deleting_track, Snackbar.LENGTH_LONG).show();
             }
         });
     }

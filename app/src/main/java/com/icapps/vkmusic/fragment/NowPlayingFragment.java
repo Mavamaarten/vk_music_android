@@ -114,8 +114,6 @@ public class NowPlayingFragment extends BaseMusicFragment {
                 .subscribe(isDark -> {
                     binding.playbackPositionLabel.setTextColor(isDark ? Color.WHITE : Color.BLACK);
                     binding.playbackRemainingLabel.setTextColor(isDark ? Color.WHITE : Color.BLACK);
-
-                    System.out.println("Dark: " + isDark);
                 });
     }
 }

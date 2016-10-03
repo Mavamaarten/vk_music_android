@@ -184,7 +184,7 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
     }
 
     private void createNavigationDrawer() {
-        String photo = "https://vk.com/images/camera_100.png";
+        String photo = getString(R.string.url_empty_avatar);
         try {
             photo = user.fields.getString("photo_big");
         } catch (Exception ignored) {
@@ -313,7 +313,7 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
                         public void onComplete(VKResponse response) {
                             drawer.removeItem(playlist.getId());
                             loadPlaylists();
-                            Snackbar.make(binding.slidinglayout, "Playlist successfully deleted", Snackbar.LENGTH_SHORT).show();
+                            Snackbar.make(binding.slidinglayout, R.string.deleted_playlist, Snackbar.LENGTH_SHORT).show();
                         }
                     });
                 })
@@ -463,7 +463,7 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
 
     @Override
     public void onMusicServiceException(Exception ex) {
-        Snackbar.make(binding.getRoot(), "Music service exception! " + ex, Snackbar.LENGTH_LONG).show();
+        Snackbar.make(binding.getRoot(), R.string.error_playing_track, Snackbar.LENGTH_LONG).show();
     }
 
     @Override
@@ -493,6 +493,6 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
 
     @Override
     public void onAudioAddedToPlaylist(VKApiAudio audio, VkApiAlbum playlist) {
-        Snackbar.make(binding.slidinglayout, "Track successfully added to " + playlist.getTitle(), Snackbar.LENGTH_SHORT).show();
+        Snackbar.make(binding.slidinglayout, getString(R.string.track_added_to, playlist.getTitle()), Snackbar.LENGTH_SHORT).show();
     }
 }

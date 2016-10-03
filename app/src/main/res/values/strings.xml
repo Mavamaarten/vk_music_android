@@ -12,7 +12,7 @@
     <string name="play_next">Play next</string>
     <string name="add_to_playlist">Add to playlist</string>
     <string name="remove_from_my_audio">Remove from my audio</string>
-    <string name="my_audio">My audio</string>
+    <string name="my_audio">My music</string>
     <string name="now_playing">Now playing</string>
     <string name="search">Search</string>
     <string name="playback_queue">Playback queue</string>
@@ -31,4 +31,11 @@
     <string name="no_tracks_found">No tracks found</string>
     <string name="remove_from_playlist">Remove from playlist</string>
     <string name="remove_from_your_music">Remove from your music</string>
+    <string name="track_removed">Track successfully removed</string>
+    <string name="error_deleting_track">Error while deleting this track</string>
+    <string name="error_loading_search">Error loading search results</string>
+    <string name="url_empty_avatar">https://vk.com/images/camera_100.png</string>
+    <string name="deleted_playlist">Playlist successfully deleted</string>
+    <string name="error_playing_track">Error playing track</string>
+    <string name="track_added_to">"Track successfully added to %1$s"</string>
 </resources>

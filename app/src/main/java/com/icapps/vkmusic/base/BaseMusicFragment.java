@@ -54,7 +54,9 @@ public abstract class BaseMusicFragment extends BaseFragment implements ServiceC
         currentAlbumArtCallback = new Observable.OnPropertyChangedCallback() {
             @Override
             public void onPropertyChanged(Observable observable, int i) {
-                onCurrentAlbumArtChanged(currentAlbumArt.get());
+                getActivity().runOnUiThread(() -> {
+                    onCurrentAlbumArtChanged(currentAlbumArt.get());
+                });
             }
         };
     }

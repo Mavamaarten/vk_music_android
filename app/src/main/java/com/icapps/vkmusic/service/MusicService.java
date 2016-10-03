@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 
@@ -55,6 +56,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     private MusicNotificationManager notificationManager;
 
     private MediaPlayer mediaPlayer;
+    private Handler mainThreadHandler;
     private Thread playbackPositionThread;
     private PlaybackState state = PlaybackState.STOPPED;
     private int currentIndex;
@@ -65,7 +67,6 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
         ((VkApplication) getApplication()).getAppComponent().inject(this);
 
-        System.out.println("MusicService started");
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         mediaPlayer.setOnPreparedListener(this);
@@ -92,6 +93,10 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                         }
                     });
         }
+
+        mainThreadHandler = new Handler();
+
+        System.out.println("MusicService started");
     }
 
     @Override
@@ -147,9 +152,13 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     public void setState(PlaybackState state) {
         this.state = state;
-        for (MusicServiceListener listener : listeners) {
-            listener.onPlaybackStateChanged(state);
-        }
+
+        mainThreadHandler.post(() -> {
+            for (MusicServiceListener listener : listeners) {
+                listener.onPlaybackStateChanged(state);
+            }
+        });
+
         notificationManager.updateNotificationPlaybackState(state);
     }
 
@@ -194,26 +203,28 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
      * @param audio the track to be played
      */
     public void playAudio(VKApiAudio audio) {
-        try {
-            mediaPlayer.reset();
-            mediaPlayer.setDataSource(audio.url);
-            mediaPlayer.prepareAsync();
+        new Thread(() -> {
+            try {
+                mediaPlayer.reset();
+                mediaPlayer.setDataSource(audio.url);
+                mediaPlayer.prepareAsync();
 
-            currentAudio.set(audio);
-            saveCurrentAudio();
+                currentAudio.set(audio);
+                saveCurrentAudio();
 
-            setState(PlaybackState.PREPARING);
+                setState(PlaybackState.PREPARING);
 
-            notificationManager.createNotification();
-            notificationManager.updateNotification(audio);
+                notificationManager.createNotification();
+                notificationManager.updateNotification(audio);
 
-            loadAlbumArt(audio);
-        } catch (IOException e) {
-            for (MusicServiceListener listener : listeners) {
-                listener.onMusicServiceException(e);
+                loadAlbumArt(audio);
+            } catch (IOException e) {
+                for (MusicServiceListener listener : listeners) {
+                    listener.onMusicServiceException(e);
+                }
+                setState(PlaybackState.STOPPED);
             }
-            setState(PlaybackState.STOPPED);
-        }
+        }).start();
     }
 
     public PlaybackState getState() {
@@ -256,6 +267,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     public void loadAlbumArt(VKApiAudio audio) {
         Bitmap placeHolder = BitmapFactory.decodeResource(getResources(), R.drawable.ic_album_placeholder);
+        currentAlbumArt.set(placeHolder);
+        notificationManager.updateNotificationBitmap(placeHolder);
 
         albumArtProvider.getAlbumArtUrl(audio.artist + " - " + audio.title)
                 .subscribeOn(Schedulers.newThread())
