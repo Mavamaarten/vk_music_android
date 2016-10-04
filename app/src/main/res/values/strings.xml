@@ -38,4 +38,5 @@
     <string name="deleted_playlist">Playlist successfully deleted</string>
     <string name="error_playing_track">Error playing track</string>
     <string name="track_added_to">"Track successfully added to %1$s"</string>
+    <string name="popular">Popular</string>
 </resources>

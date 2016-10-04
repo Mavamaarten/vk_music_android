@@ -68,6 +68,7 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
     public static final int FRAG_NOW_PLAYING = 2;
     public static final int FRAG_SEARCH = 3;
     public static final int FRAG_RADIO = 4;
+    public static final int FRAG_POPULAR = 5;
 
     @Inject VKApiUser user;
     @Inject AlbumArtProvider albumArtProvider;
@@ -83,12 +84,14 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
     private Drawer drawer;
     private PrimaryDrawerItem searchItem;
     private PrimaryDrawerItem myAudioItem;
+    private PrimaryDrawerItem popularItem;
     private PrimaryDrawerItem playbackQueueItem;
     private PrimaryDrawerItem addPlaylistItem;
     private PrimaryDrawerItem radioItem;
     private List<PrimaryDrawerItem> playlistDrawerItems = new ArrayList<>();
 
     private AudioListFragment myAudioFragment;
+    private AudioListFragment popularFragment;
     private NowPlayingFragment nowPlayingFragment;
     private PlaybackQueueFragment playbackQueueFragment;
     private RadioFragment radioFragment;
@@ -113,6 +116,15 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
             args.putSerializable(AudioListFragment.KEY_LIST_TYPE, AudioListFragment.AudioListType.MY_AUDIO);
             myAudioFragment.setArguments(args);
             myAudioFragment.setRetainInstance(true);
+        }
+
+        popularFragment = (AudioListFragment) getSupportFragmentManager().findFragmentByTag(AudioListFragment.AudioListType.POPULAR.name());
+        if (popularFragment == null) {
+            popularFragment = new AudioListFragment();
+            Bundle args = new Bundle();
+            args.putSerializable(AudioListFragment.KEY_LIST_TYPE, AudioListFragment.AudioListType.POPULAR);
+            popularFragment.setArguments(args);
+            popularFragment.setRetainInstance(true);
         }
 
         nowPlayingFragment = (NowPlayingFragment) getSupportFragmentManager().findFragmentByTag(NowPlayingFragment.class.getName());
@@ -158,18 +170,18 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
             case FRAG_QUEUE:
             case FRAG_NOW_PLAYING:
                 showPlaybackQueueFragment();
-                drawer.setSelection(playbackQueueItem);
                 break;
 
             case FRAG_SEARCH:
                 showSearchFragment();
-                drawer.setSelection(searchItem);
                 break;
 
             case FRAG_RADIO:
                 showRadioFragment();
-                drawer.setSelection(radioItem);
                 break;
+
+            case FRAG_POPULAR:
+                showPopularFragment();
         }
 
         if (launchFragment == FRAG_NOW_PLAYING) {
@@ -277,6 +289,14 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
                 })
                 .withSetSelected(true);
 
+        popularItem = new PrimaryDrawerItem()
+                .withName(R.string.popular)
+                .withIcon(GoogleMaterial.Icon.gmd_show_chart)
+                .withOnDrawerItemClickListener(((view, position, drawerItem) -> {
+                    showPopularFragment();
+                    return true;
+                }));
+
         playbackQueueItem = new PrimaryDrawerItem()
                 .withName(R.string.playback_queue)
                 .withIcon(GoogleMaterial.Icon.gmd_playlist_play)
@@ -316,6 +336,7 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
                 .addDrawerItems(
                         myAudioItem,
                         playbackQueueItem,
+                        popularItem,
                         radioItem,
                         searchItem,
                         new SectionDrawerItem().withName(getString(R.string.playlists)),
@@ -464,6 +485,17 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
         drawer.setSelection(radioItem, false);
 
         lastSelectedFragment = FRAG_RADIO;
+    }
+
+    private void showPopularFragment() {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.content_main, popularFragment, AudioListFragment.AudioListType.POPULAR.name())
+                .commit();
+
+        drawer.closeDrawer();
+        drawer.setSelection(popularItem, false);
+
+        lastSelectedFragment = FRAG_POPULAR;
     }
 
     public void startRadio(@Nullable VKApiAudio radioTrack) {

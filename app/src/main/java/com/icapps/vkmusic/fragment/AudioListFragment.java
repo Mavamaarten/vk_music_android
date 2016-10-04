@@ -48,7 +48,8 @@ public class AudioListFragment extends BaseMusicFragment implements VkAudioAdapt
     public enum AudioListType {
         MY_AUDIO,
         PLAYLIST,
-        SEARCH
+        SEARCH,
+        POPULAR
     }
 
     public AudioListFragment() {
@@ -84,7 +85,7 @@ public class AudioListFragment extends BaseMusicFragment implements VkAudioAdapt
 
     public void search(String searchQuery) {
         this.searchQuery = searchQuery;
-        if(isVisible()){
+        if (isVisible()) {
             loadData();
         }
     }
@@ -104,6 +105,10 @@ public class AudioListFragment extends BaseMusicFragment implements VkAudioAdapt
 
             case SEARCH:
                 parameters = VKParameters.from(VKApiConst.Q, searchQuery, VKApiConst.COUNT, 100);
+                break;
+
+            case POPULAR:
+                parameters = VKParameters.from("only_eng", 1);
                 break;
         }
 
@@ -131,6 +136,8 @@ public class AudioListFragment extends BaseMusicFragment implements VkAudioAdapt
 
         if (listType == AudioListType.SEARCH) {
             VKApi.audio().search(parameters).executeWithListener(listener);
+        } else if (listType == AudioListType.POPULAR) {
+            VKApi.audio().getPopular(parameters).executeWithListener(listener);
         } else {
             VKApi.audio().get(parameters).executeWithListener(listener);
         }
@@ -144,9 +151,9 @@ public class AudioListFragment extends BaseMusicFragment implements VkAudioAdapt
         binding.rcvAudio.setAdapter(adapter);
         binding.swiperefresh.setOnRefreshListener(this);
 
-        if (audioArray.size() == 0 && (listType == AudioListType.PLAYLIST || listType == AudioListType.MY_AUDIO)) {
+        if (audioArray.size() == 0 && (listType == AudioListType.PLAYLIST || listType == AudioListType.MY_AUDIO || listType == AudioListType.POPULAR)) {
             loadData();
-        } else if(listType == AudioListType.SEARCH && searchQuery != null){
+        } else if (listType == AudioListType.SEARCH && searchQuery != null) {
             loadData();
         }
 
@@ -157,7 +164,7 @@ public class AudioListFragment extends BaseMusicFragment implements VkAudioAdapt
     public void onResume() {
         super.onResume();
 
-        switch(listType){
+        switch (listType) {
             case MY_AUDIO:
                 getActivity().setTitle(R.string.my_audio);
                 break;
@@ -168,6 +175,10 @@ public class AudioListFragment extends BaseMusicFragment implements VkAudioAdapt
 
             case SEARCH:
                 getActivity().setTitle(R.string.search_results);
+                break;
+
+            case POPULAR:
+                getActivity().setTitle(R.string.popular);
                 break;
         }
 
