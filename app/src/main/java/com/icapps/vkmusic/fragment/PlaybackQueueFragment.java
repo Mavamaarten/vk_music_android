@@ -59,12 +59,14 @@ public class PlaybackQueueFragment extends BaseMusicFragment implements VkAudioA
     @Override
     public void onResume() {
         super.onResume();
+
+        getActivity().setTitle(R.string.playback_queue);
+
         if (musicService == null || musicService.getState() == MusicService.PlaybackState.STOPPED) {
             adapter.setCurrentAudio(null);
         } else {
             adapter.setCurrentAudio(currentAudio.get());
         }
-        getActivity().setTitle(R.string.playback_queue);
     }
 
     @Override

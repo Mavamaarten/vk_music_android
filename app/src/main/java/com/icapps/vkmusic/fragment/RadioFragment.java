@@ -34,8 +34,6 @@ import rx.functions.Action0;
  * Created by maartenvangiel on 28/09/16.
  */
 public class RadioFragment extends BaseMusicFragment implements VkAudioAdapter.VkAudioAdapterListener {
-    public static final String KEY_AUDIO = "AUDIO";
-
     @State VkAudioArray audioArray;
     @State boolean startRadioWhenShown;
     @State VKApiAudio radioTrack;
@@ -120,12 +118,14 @@ public class RadioFragment extends BaseMusicFragment implements VkAudioAdapter.V
     @Override
     public void onResume() {
         super.onResume();
+
+        getActivity().setTitle(R.string.radio);
+
         if (musicService == null || musicService.getState() == MusicService.PlaybackState.STOPPED) {
             adapter.setCurrentAudio(null);
         } else {
             adapter.setCurrentAudio(currentAudio.get());
         }
-        getActivity().setTitle(R.string.radio);
 
         if (startRadioWhenShown) {
             startRadio(radioTrack);

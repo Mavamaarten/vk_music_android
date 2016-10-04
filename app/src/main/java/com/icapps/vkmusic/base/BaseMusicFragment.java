@@ -9,6 +9,9 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 
 import com.icapps.vkmusic.VkApplication;
 import com.icapps.vkmusic.service.MusicService;
@@ -16,6 +19,8 @@ import com.vk.sdk.api.model.VKApiAudio;
 import com.vk.sdk.api.model.VkAudioArray;
 
 import javax.inject.Inject;
+
+import icepick.Icepick;
 
 import static android.content.Context.BIND_AUTO_CREATE;
 
@@ -39,6 +44,13 @@ public abstract class BaseMusicFragment extends BaseFragment implements ServiceC
     protected void inject() {
         ((VkApplication) getActivity().getApplication()).getUserComponent().inject(this);
         injectDependencies();
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        Icepick.restoreInstanceState(this, savedInstanceState);
+        return super.onCreateView(inflater, container, savedInstanceState);
     }
 
     @Override
@@ -92,6 +104,12 @@ public abstract class BaseMusicFragment extends BaseFragment implements ServiceC
         getContext().unbindService(this);
         currentAudio.removeOnPropertyChangedCallback(currentAudioCallback);
         currentAlbumArt.removeOnPropertyChangedCallback(currentAlbumArtCallback);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        Icepick.saveInstanceState(this, outState);
     }
 
     @Override

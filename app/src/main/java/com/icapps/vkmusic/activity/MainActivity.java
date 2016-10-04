@@ -24,12 +24,10 @@ import com.icapps.vkmusic.VkApplication;
 import com.icapps.vkmusic.base.BaseActivity;
 import com.icapps.vkmusic.databinding.ActivityMainBinding;
 import com.icapps.vkmusic.dialog.AddTrackToPlaylistDialogFragment;
-import com.icapps.vkmusic.fragment.MyAudioFragment;
+import com.icapps.vkmusic.fragment.AudioListFragment;
 import com.icapps.vkmusic.fragment.NowPlayingFragment;
 import com.icapps.vkmusic.fragment.PlaybackQueueFragment;
-import com.icapps.vkmusic.fragment.PlaylistFragment;
 import com.icapps.vkmusic.fragment.RadioFragment;
-import com.icapps.vkmusic.fragment.SearchFragment;
 import com.icapps.vkmusic.model.albumart.AlbumArtProvider;
 import com.icapps.vkmusic.model.api.VkApiAlbum;
 import com.icapps.vkmusic.model.api.VkApiAlbumArrayResponse;
@@ -61,11 +59,15 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import icepick.State;
+
 public class MainActivity extends BaseActivity implements MusicService.MusicServiceListener, AddTrackToPlaylistDialogFragment.AddTrackToPlaylistListener {
     public static final String KEY_INITIAL_FRAGMENT = "INITIAL_FRAGMENT";
     public static final int FRAG_MYAUDIO = 0;
     public static final int FRAG_QUEUE = 1;
     public static final int FRAG_NOW_PLAYING = 2;
+    public static final int FRAG_SEARCH = 3;
+    public static final int FRAG_RADIO = 4;
 
     @Inject VKApiUser user;
     @Inject AlbumArtProvider albumArtProvider;
@@ -73,20 +75,24 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
     @Inject ObservableField<VKApiAudio> currentAudio;
     @Inject Gson gson;
 
+    @State Integer lastSelectedFragment;
+
     private MusicService musicService;
 
     private Menu optionsMenu;
     private Drawer drawer;
     private PrimaryDrawerItem searchItem;
     private PrimaryDrawerItem myAudioItem;
+    private PrimaryDrawerItem playbackQueueItem;
     private PrimaryDrawerItem addPlaylistItem;
     private PrimaryDrawerItem radioItem;
     private List<PrimaryDrawerItem> playlistDrawerItems = new ArrayList<>();
 
-    private MyAudioFragment myAudioFragment;
+    private AudioListFragment myAudioFragment;
     private NowPlayingFragment nowPlayingFragment;
     private PlaybackQueueFragment playbackQueueFragment;
     private RadioFragment radioFragment;
+    private AudioListFragment searchFragment;
 
     private ActivityMainBinding binding;
     private ServiceConnection serviceConnection;
@@ -100,25 +106,69 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
 
         createNavigationDrawer();
 
-        setTitle(R.string.my_audio);
+        myAudioFragment = (AudioListFragment) getSupportFragmentManager().findFragmentByTag(AudioListFragment.AudioListType.MY_AUDIO.name());
+        if (myAudioFragment == null) {
+            myAudioFragment = new AudioListFragment();
+            Bundle args = new Bundle();
+            args.putSerializable(AudioListFragment.KEY_LIST_TYPE, AudioListFragment.AudioListType.MY_AUDIO);
+            myAudioFragment.setArguments(args);
+            myAudioFragment.setRetainInstance(true);
+        }
 
-        myAudioFragment = new MyAudioFragment();
-        nowPlayingFragment = new NowPlayingFragment();
-        playbackQueueFragment = new PlaybackQueueFragment();
-        radioFragment = new RadioFragment();
+        nowPlayingFragment = (NowPlayingFragment) getSupportFragmentManager().findFragmentByTag(NowPlayingFragment.class.getName());
+        if (nowPlayingFragment == null) {
+            nowPlayingFragment = new NowPlayingFragment();
+            nowPlayingFragment.setRetainInstance(true);
+        }
+
+        playbackQueueFragment = (PlaybackQueueFragment) getSupportFragmentManager().findFragmentByTag(PlaybackQueueFragment.class.getName());
+        if (playbackQueueFragment == null) {
+            playbackQueueFragment = new PlaybackQueueFragment();
+            playbackQueueFragment.setRetainInstance(true);
+        }
+
+        radioFragment = (RadioFragment) getSupportFragmentManager().findFragmentByTag(RadioFragment.class.getName());
+        if (radioFragment == null) {
+            radioFragment = new RadioFragment();
+            radioFragment.setRetainInstance(true);
+        }
+
+        searchFragment = (AudioListFragment) getSupportFragmentManager().findFragmentByTag(AudioListFragment.AudioListType.SEARCH.name());
+        if (searchFragment == null) {
+            searchFragment = new AudioListFragment();
+            Bundle args = new Bundle();
+            args.putSerializable(AudioListFragment.KEY_LIST_TYPE, AudioListFragment.AudioListType.SEARCH);
+            searchFragment.setArguments(args);
+            searchFragment.setRetainInstance(true);
+        }
 
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.content_slidingpanel, nowPlayingFragment, NowPlayingFragment.class.getName())
                 .commit();
 
-        final int launchFragment = getIntent().getIntExtra(KEY_INITIAL_FRAGMENT, FRAG_MYAUDIO);
+        if (lastSelectedFragment == null) {
+            lastSelectedFragment = FRAG_MYAUDIO;
+        }
+        final int launchFragment = getIntent().getIntExtra(KEY_INITIAL_FRAGMENT, lastSelectedFragment);
         switch (launchFragment) {
             case FRAG_MYAUDIO:
                 showMyAudioFragment();
                 break;
+
             case FRAG_QUEUE:
             case FRAG_NOW_PLAYING:
                 showPlaybackQueueFragment();
+                drawer.setSelection(playbackQueueItem);
+                break;
+
+            case FRAG_SEARCH:
+                showSearchFragment();
+                drawer.setSelection(searchItem);
+                break;
+
+            case FRAG_RADIO:
+                showRadioFragment();
+                drawer.setSelection(radioItem);
                 break;
         }
 
@@ -141,7 +191,7 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
 
                 playlistDrawerItems.clear();
 
-                if(albumsResponse.getResponse() == null){
+                if (albumsResponse.getResponse() == null) {
                     return;
                 }
 
@@ -227,7 +277,7 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
                 })
                 .withSetSelected(true);
 
-        PrimaryDrawerItem nowPlayingItem = new PrimaryDrawerItem()
+        playbackQueueItem = new PrimaryDrawerItem()
                 .withName(R.string.playback_queue)
                 .withIcon(GoogleMaterial.Icon.gmd_playlist_play)
                 .withOnDrawerItemClickListener((view, position, drawerItem) -> {
@@ -265,7 +315,7 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
                 .withAccountHeader(header)
                 .addDrawerItems(
                         myAudioItem,
-                        nowPlayingItem,
+                        playbackQueueItem,
                         radioItem,
                         searchItem,
                         new SectionDrawerItem().withName(getString(R.string.playlists)),
@@ -354,24 +404,8 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                SearchFragment searchFragment = (SearchFragment) getSupportFragmentManager().findFragmentByTag(SearchFragment.class.getName());
-                if (searchFragment == null) {
-                    Bundle arguments = new Bundle();
-                    arguments.putString("query", query);
-
-                    searchFragment = new SearchFragment();
-                    searchFragment.setArguments(arguments);
-
-                    getSupportFragmentManager().beginTransaction()
-                            .replace(R.id.content_main, searchFragment, SearchFragment.class.getName())
-                            .commit();
-
-                    setTitle(R.string.search_results);
-                } else {
-                    searchFragment.search(query);
-                }
-
-                drawer.setSelection(searchItem, false);
+                searchFragment.search(query);
+                showSearchFragment();
                 return false;
             }
 
@@ -386,20 +420,28 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
 
     private void showMyAudioFragment() {
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.content_main, myAudioFragment, MyAudioFragment.class.getName())
+                .replace(R.id.content_main, myAudioFragment, AudioListFragment.AudioListType.MY_AUDIO.name())
                 .commit();
 
         drawer.closeDrawer();
+        drawer.setSelection(myAudioItem, false);
+
+        lastSelectedFragment = FRAG_MYAUDIO;
     }
 
     private void showSearchFragment() {
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.content_main, new SearchFragment(), SearchFragment.class.getName())
+                .replace(R.id.content_main, searchFragment, AudioListFragment.AudioListType.SEARCH.name())
                 .commit();
 
         drawer.closeDrawer();
+        drawer.setSelection(searchItem, false);
 
-        optionsMenu.findItem(R.id.action_search).expandActionView();
+        if (optionsMenu != null) {
+            optionsMenu.findItem(R.id.action_search).expandActionView();
+        }
+
+        lastSelectedFragment = FRAG_SEARCH;
     }
 
     private void showPlaybackQueueFragment() {
@@ -408,34 +450,39 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
                 .commit();
 
         drawer.closeDrawer();
+        drawer.setSelection(playbackQueueItem, false);
+
+        lastSelectedFragment = FRAG_QUEUE;
     }
 
     private void showRadioFragment() {
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.content_main, radioFragment, PlaybackQueueFragment.class.getName())
+                .replace(R.id.content_main, radioFragment, RadioFragment.class.getName())
                 .commit();
 
         drawer.closeDrawer();
+        drawer.setSelection(radioItem, false);
+
+        lastSelectedFragment = FRAG_RADIO;
     }
 
     public void startRadio(@Nullable VKApiAudio radioTrack) {
-        drawer.setSelection(radioItem, false);
-
-        showRadioFragment();
-
         radioFragment.setRadioTrack(radioTrack);
         radioFragment.setStartRadioWhenShown(true);
+
+        showRadioFragment();
     }
 
     private void showPlaylistFragment(VkApiAlbum playlist) {
         Bundle arguments = new Bundle();
-        arguments.putParcelable(PlaylistFragment.KEY_PLAYLIST, playlist);
+        arguments.putSerializable(AudioListFragment.KEY_LIST_TYPE, AudioListFragment.AudioListType.PLAYLIST);
+        arguments.putParcelable(AudioListFragment.KEY_PLAYLIST, playlist);
 
-        PlaylistFragment playlistFragment = new PlaylistFragment();
+        AudioListFragment playlistFragment = new AudioListFragment();
         playlistFragment.setArguments(arguments);
 
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.content_main, playlistFragment, PlaylistFragment.class.getName())
+                .replace(R.id.content_main, playlistFragment, AudioListFragment.class.getName())
                 .commit();
 
         setTitle(playlist.getTitle());
