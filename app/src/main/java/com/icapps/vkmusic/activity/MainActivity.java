@@ -274,6 +274,7 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
                 .withSelectable(false)
                 .withOnDrawerItemClickListener((view, position, drawerItem) -> {
                     new LibsBuilder()
+                            .withActivityTitle(getString(R.string.about))
                             .withActivityStyle(Libs.ActivityStyle.LIGHT_DARK_TOOLBAR)
                             .start(MainActivity.this);
                     return false;
