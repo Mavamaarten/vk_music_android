@@ -69,6 +69,7 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
     public static final int FRAG_SEARCH = 3;
     public static final int FRAG_RADIO = 4;
     public static final int FRAG_POPULAR = 5;
+    public static final int FRAG_PLAYLIST = 6;
 
     @Inject VKApiUser user;
     @Inject AlbumArtProvider albumArtProvider;
@@ -77,6 +78,7 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
     @Inject Gson gson;
 
     @State Integer lastSelectedFragment;
+    @State VkApiAlbum lastSelectedPlaylist;
 
     private MusicService musicService;
 
@@ -182,6 +184,11 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
 
             case FRAG_POPULAR:
                 showPopularFragment();
+                break;
+
+            case FRAG_PLAYLIST:
+                showPlaylistFragment(lastSelectedPlaylist);
+                break;
         }
 
         if (launchFragment == FRAG_NOW_PLAYING) {
@@ -521,6 +528,10 @@ public class MainActivity extends BaseActivity implements MusicService.MusicServ
         setTitle(playlist.getTitle());
 
         drawer.closeDrawer();
+        drawer.setSelection(playlist.getId(), false);
+
+        lastSelectedPlaylist = playlist;
+        lastSelectedFragment = FRAG_PLAYLIST;
     }
 
     public void onLogoutClicked(View sender) {
