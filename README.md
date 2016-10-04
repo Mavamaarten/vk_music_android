@@ -6,6 +6,7 @@ Vk Music has the following features:
 - Search
 - Playlists
 - Recommendations (radio)
+- Popular tracks
 - Notification with playback controls
 - Fullscreen lockscreen background
 
