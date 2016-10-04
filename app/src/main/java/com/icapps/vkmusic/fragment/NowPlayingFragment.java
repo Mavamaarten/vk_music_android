@@ -91,22 +91,27 @@ public class NowPlayingFragment extends BaseMusicFragment {
 
     @Override
     protected void onCurrentAlbumArtChanged(Bitmap currentAlbumArt) {
-        Drawable currentDrawable = binding.albumLarge.getDrawable();
-        if (currentDrawable == null) {
-            currentDrawable = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_album_placeholder, null);
-        }
-        BitmapDrawable albumArtDrawable = new BitmapDrawable(getResources(), currentAlbumArt);
+        new Thread(() -> {
+            Drawable currentDrawable = binding.albumLarge.getDrawable();
+            if (currentDrawable == null) {
+                currentDrawable = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_album_placeholder, null);
+            }
+            BitmapDrawable albumArtDrawable = new BitmapDrawable(getResources(), currentAlbumArt);
 
-        TransitionDrawable transitionDrawableSmall = new TransitionDrawable(new Drawable[]{currentDrawable, albumArtDrawable});
-        transitionDrawableSmall.setCrossFadeEnabled(true);
-        binding.albumSmall.setImageDrawable(transitionDrawableSmall);
+            TransitionDrawable transitionDrawableSmall = new TransitionDrawable(new Drawable[]{currentDrawable, albumArtDrawable});
+            transitionDrawableSmall.setCrossFadeEnabled(true);
 
-        TransitionDrawable transitionDrawableLarge = new TransitionDrawable(new Drawable[]{currentDrawable, albumArtDrawable});
-        transitionDrawableLarge.setCrossFadeEnabled(true);
-        binding.albumLarge.setImageDrawable(transitionDrawableLarge);
+            TransitionDrawable transitionDrawableLarge = new TransitionDrawable(new Drawable[]{currentDrawable, albumArtDrawable});
+            transitionDrawableLarge.setCrossFadeEnabled(true);
 
-        transitionDrawableSmall.startTransition(getResources().getInteger(android.R.integer.config_mediumAnimTime));
-        transitionDrawableLarge.startTransition(getResources().getInteger(android.R.integer.config_mediumAnimTime));
+            getActivity().runOnUiThread(() -> {
+                binding.albumSmall.setImageDrawable(transitionDrawableSmall);
+                binding.albumLarge.setImageDrawable(transitionDrawableLarge);
+
+                transitionDrawableSmall.startTransition(getResources().getInteger(android.R.integer.config_mediumAnimTime));
+                transitionDrawableLarge.startTransition(getResources().getInteger(android.R.integer.config_mediumAnimTime));
+            });
+        }).start();
 
         GraphicsUtil.isBottomDark(currentAlbumArt)
                 .subscribeOn(Schedulers.newThread())
