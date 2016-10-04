@@ -36,6 +36,8 @@ public class LoginActivity extends BaseActivity {
             return;
         }
 
+        setTitle(R.string.log_in);
+
         ActivityLoginBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_login);
         binding.login.setOnClickListener(v -> VKSdk.login(LoginActivity.this, "audio", "offline"));
     }

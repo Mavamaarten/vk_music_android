@@ -2,6 +2,8 @@ package com.icapps.vkmusic.service;
 
 import android.app.Service;
 import android.content.Intent;
+import android.databinding.Observable;
+import android.databinding.ObservableBoolean;
 import android.databinding.ObservableField;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -19,6 +21,10 @@ import com.icapps.vkmusic.R;
 import com.icapps.vkmusic.VkApplication;
 import com.icapps.vkmusic.activity.MainActivity;
 import com.icapps.vkmusic.model.albumart.AlbumArtProvider;
+import com.vk.sdk.api.VKApi;
+import com.vk.sdk.api.VKParameters;
+import com.vk.sdk.api.VKRequest;
+import com.vk.sdk.api.VKResponse;
 import com.vk.sdk.api.model.VKApiAudio;
 import com.vk.sdk.api.model.VkAudioArray;
 
@@ -27,8 +33,10 @@ import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import io.paperdb.Paper;
 import rx.android.schedulers.AndroidSchedulers;
@@ -44,11 +52,18 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     public static final int ACTION_NEXT = 3;
     public static final int ACTION_DISMISS = 4;
     public static final int ACTION_OPEN_ACTIVITY = 5;
+    public static final int ACTION_ADD = 6;
 
     @Inject VkAudioArray playbackQueue;
     @Inject ObservableField<VKApiAudio> currentAudio;
     @Inject ObservableField<Bitmap> currentAlbumArt;
     @Inject AlbumArtProvider albumArtProvider;
+    @Inject
+    @Named("shuffle")
+    ObservableBoolean shuffleSetting;
+    @Inject
+    @Named("repeat")
+    ObservableBoolean repeatSetting;
 
     private final IBinder binder = new MusicServiceBinder();
     private final List<MusicServiceListener> listeners = new ArrayList<>();
@@ -60,8 +75,10 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     private Thread playbackPositionThread;
     private PlaybackState state = PlaybackState.STOPPED;
     private int currentIndex;
+    private Random random = new Random();
+    private Observable.OnPropertyChangedCallback onShuffleChangedCallback;
+    private Observable.OnPropertyChangedCallback onRepeatChangedCallback;
 
-    @Override
     public void onCreate() {
         super.onCreate();
 
@@ -80,9 +97,9 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             notificationManager.updateNotification(currentAudio.get());
         }
 
-        if(currentAlbumArt.get() == null){
+        if (currentAlbumArt.get() == null) {
             Glide.with(MusicService.this)
-                    .load((String)Paper.book().read("currentAlbumArtUrl"))
+                    .load((String) Paper.book().read("currentAlbumArtUrl"))
                     .asBitmap()
                     .error(R.drawable.ic_album_placeholder)
                     .into(new SimpleTarget<Bitmap>() {
@@ -96,6 +113,21 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
         mainThreadHandler = new Handler();
 
+        onShuffleChangedCallback = new Observable.OnPropertyChangedCallback() {
+            @Override
+            public void onPropertyChanged(Observable observable, int i) {
+                Paper.book().write("shuffle", shuffleSetting);
+            }
+        };
+        onRepeatChangedCallback = new Observable.OnPropertyChangedCallback() {
+            @Override
+            public void onPropertyChanged(Observable observable, int i) {
+                Paper.book().write("repeat", repeatSetting);
+            }
+        };
+        shuffleSetting.addOnPropertyChangedCallback(onShuffleChangedCallback);
+        repeatSetting.addOnPropertyChangedCallback(onRepeatChangedCallback);
+
         System.out.println("MusicService started");
     }
 
@@ -103,6 +135,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     public void onDestroy() {
         super.onDestroy();
         mediaPlayer.release();
+        shuffleSetting.removeOnPropertyChangedCallback(onShuffleChangedCallback);
+        repeatSetting.removeOnPropertyChangedCallback(onRepeatChangedCallback);
         System.out.println("MusicService destroyed");
     }
 
@@ -142,7 +176,16 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                         mainActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
                         startActivity(mainActivityIntent);
                     }
+                    break;
 
+                case ACTION_ADD:
+                    final VKApiAudio audio = currentAudio.get();
+                    VKApi.audio().add(VKParameters.from("audio_id", audio.id, "owner_id", audio.owner_id)).executeWithListener(new VKRequest.VKRequestListener() {
+                        @Override
+                        public void onComplete(VKResponse response) {
+                            notificationManager.showAddCompleteIndicator();
+                        }
+                    });
                     break;
             }
         }
@@ -331,21 +374,32 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     }
 
     public void playNextTrackInQueue() {
-        if (currentIndex < playbackQueue.size() - 1) {
-            VKApiAudio audio = playbackQueue.get(++currentIndex);
+        if (shuffleSetting.get()) {
+            int randomIndex = random.nextInt(playbackQueue.size());
+            currentIndex = randomIndex;
+            VKApiAudio audio = playbackQueue.get(randomIndex);
             playAudio(audio);
-        } else if (currentIndex > playbackQueue.size() && playbackQueue.size() > 0) {
-            currentIndex = 0;
-            VKApiAudio audio = playbackQueue.get(currentIndex);
-            playAudio(audio);
+        } else {
+            if (currentIndex < playbackQueue.size() - 1) { // Valid currentIndex and there are more tracks in the queue
+                VKApiAudio audio = playbackQueue.get(++currentIndex);
+                playAudio(audio);
+            } else if (currentIndex > playbackQueue.size() && playbackQueue.size() > 0) { // Invalid currentIndex: restart from 0
+                currentIndex = 0;
+                VKApiAudio audio = playbackQueue.get(currentIndex);
+                playAudio(audio);
+            } else if(currentIndex == playbackQueue.size() - 1 && repeatSetting.get()){ // Last track and repeat is enabled
+                currentIndex = 0;
+                VKApiAudio audio = playbackQueue.get(currentIndex);
+                playAudio(audio);
+            }
         }
     }
 
     public void playPreviousTrackInQueue() {
-        if ((currentIndex - 1) >= 0 && (currentIndex < playbackQueue.size())) {
+        if ((currentIndex - 1) >= 0 && (currentIndex < playbackQueue.size())) { // Valid currentIndex and there are more tracks in the queue
             VKApiAudio audio = playbackQueue.get(--currentIndex);
             playAudio(audio);
-        } else if (currentIndex >= playbackQueue.size() && playbackQueue.size() > 0) {
+        } else if (currentIndex >= playbackQueue.size() && playbackQueue.size() > 0) { // Invalid currentIndex: restart from 0;
             currentIndex = 0;
             VKApiAudio audio = playbackQueue.get(currentIndex);
             playAudio(audio);

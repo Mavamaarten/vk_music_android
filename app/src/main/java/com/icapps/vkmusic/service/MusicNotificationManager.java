@@ -45,19 +45,23 @@ class MusicNotificationManager {
 
         Intent playPauseIntent = new Intent(context, MusicService.class);
         playPauseIntent.putExtra(MusicService.KEY_ACTION, MusicService.ACTION_PLAY_PAUSE);
-        PendingIntent playPausePendingIntent = PendingIntent.getService(context, MusicService.ACTION_PLAY_PAUSE, playPauseIntent, 0);
+        PendingIntent playPausePendingIntent = PendingIntent.getService(context, MusicService.ACTION_PLAY_PAUSE, playPauseIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         Intent previousIntent = new Intent(context, MusicService.class);
         previousIntent.putExtra(MusicService.KEY_ACTION, MusicService.ACTION_PREVIOUS);
-        PendingIntent previousPendingIntent = PendingIntent.getService(context, MusicService.ACTION_PREVIOUS, previousIntent, 0);
+        PendingIntent previousPendingIntent = PendingIntent.getService(context, MusicService.ACTION_PREVIOUS, previousIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         Intent nextIntent = new Intent(context, MusicService.class);
         nextIntent.putExtra(MusicService.KEY_ACTION, MusicService.ACTION_NEXT);
-        PendingIntent nextPendingIntent = PendingIntent.getService(context, MusicService.ACTION_NEXT, nextIntent, 0);
+        PendingIntent nextPendingIntent = PendingIntent.getService(context, MusicService.ACTION_NEXT, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        Intent addIntent = new Intent(context, MusicService.class);
+        addIntent.putExtra(MusicService.KEY_ACTION, MusicService.ACTION_ADD);
+        PendingIntent addPendingIntent = PendingIntent.getService(context, MusicService.ACTION_ADD, addIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         Intent dismissIntent = new Intent(context, MusicService.class);
         dismissIntent.putExtra(MusicService.KEY_ACTION, MusicService.ACTION_DISMISS);
-        PendingIntent dismissPendingIntent = PendingIntent.getService(context, MusicService.ACTION_DISMISS, dismissIntent, 0);
+        PendingIntent dismissPendingIntent = PendingIntent.getService(context, MusicService.ACTION_DISMISS, dismissIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         Intent openActivityIntent = new Intent(context, MusicService.class);
         openActivityIntent.putExtra(MusicService.KEY_ACTION, MusicService.ACTION_OPEN_ACTIVITY);
@@ -78,9 +82,10 @@ class MusicNotificationManager {
         notificationViewLarge.setOnClickPendingIntent(R.id.previous, previousPendingIntent);
         notificationViewLarge.setOnClickPendingIntent(R.id.next, nextPendingIntent);
         notificationViewLarge.setOnClickPendingIntent(R.id.dismiss, dismissPendingIntent);
+        notificationViewLarge.setOnClickPendingIntent(R.id.add, addPendingIntent);
 
         notification = new NotificationCompat.Builder(context)
-                .setSmallIcon(R.drawable.ic_vk)
+                .setSmallIcon(R.drawable.ic_notification)
                 .setContentIntent(openActivityPendingIntent)
                 .setContentTitle("vk Music")
                 .setContent(notificationViewSmall)
@@ -133,13 +138,13 @@ class MusicNotificationManager {
         switch (state) {
             case STOPPED:
             case PAUSED:
-                notificationViewLarge.setImageViewResource(R.id.play_pause, R.drawable.ic_play_bitmap);
-                notificationViewSmall.setImageViewResource(R.id.play_pause, R.drawable.ic_play_bitmap);
+                notificationViewLarge.setImageViewResource(R.id.play_pause, R.drawable.ic_play);
+                notificationViewSmall.setImageViewResource(R.id.play_pause, R.drawable.ic_play);
                 break;
             case PREPARING:
             case PLAYING:
-                notificationViewLarge.setImageViewResource(R.id.play_pause, R.drawable.ic_pause_bitmap);
-                notificationViewSmall.setImageViewResource(R.id.play_pause, R.drawable.ic_pause_bitmap);
+                notificationViewLarge.setImageViewResource(R.id.play_pause, R.drawable.ic_pause);
+                notificationViewSmall.setImageViewResource(R.id.play_pause, R.drawable.ic_pause);
                 break;
         }
         notificationManager.notify(NOTIFICATION_ID, notification);
@@ -163,4 +168,19 @@ class MusicNotificationManager {
         notificationManager.notify(NOTIFICATION_ID, notification);
     }
 
+    void showAddCompleteIndicator() {
+        new Thread(() -> {
+            notificationViewLarge.setImageViewResource(R.id.add, R.drawable.ic_check);
+            notificationManager.notify(NOTIFICATION_ID, notification);
+
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                return;
+            }
+
+            notificationViewLarge.setImageViewResource(R.id.add, R.drawable.ic_add);
+            notificationManager.notify(NOTIFICATION_ID, notification);
+        }).start();
+    }
 }

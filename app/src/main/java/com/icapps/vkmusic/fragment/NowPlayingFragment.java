@@ -1,6 +1,7 @@
 package com.icapps.vkmusic.fragment;
 
 import android.databinding.DataBindingUtil;
+import android.databinding.ObservableBoolean;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
@@ -21,10 +22,20 @@ import com.icapps.vkmusic.service.MusicService;
 import com.icapps.vkmusic.util.GraphicsUtil;
 import com.vk.sdk.api.model.VKApiAudio;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
 public class NowPlayingFragment extends BaseMusicFragment {
+    @Inject
+    @Named("shuffle")
+    ObservableBoolean shuffleSetting;
+    @Inject
+    @Named("repeat")
+    ObservableBoolean repeatSetting;
+
     private FragmentNowPlayingBinding binding;
 
     public NowPlayingFragment() {
@@ -38,6 +49,8 @@ public class NowPlayingFragment extends BaseMusicFragment {
         binding.previous.setOnClickListener(v -> onPreviousClicked());
         binding.playPause.setOnClickListener(v -> onPlayPauseClicked());
         binding.playPauseTop.setOnClickListener(v -> onPlayPauseClicked());
+        binding.shuffle.setOnClickListener(v -> onShuffleClicked());
+        binding.repeat.setOnClickListener(v -> onRepeatClicked());
         binding.playbackPosition.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -55,8 +68,39 @@ public class NowPlayingFragment extends BaseMusicFragment {
             }
         });
 
+        updateShuffleColor();
+        updateRepeatColor();
+
         binding.setCurrentAudio(currentAudio.get());
         return binding.getRoot();
+    }
+
+    private void onRepeatClicked() {
+        boolean newRepeatSetting = !repeatSetting.get();
+        repeatSetting.set(newRepeatSetting);
+        updateRepeatColor();
+    }
+
+    private void onShuffleClicked() {
+        boolean newShuffleSetting = !shuffleSetting.get();
+        shuffleSetting.set(newShuffleSetting);
+        updateShuffleColor();
+    }
+
+    private void updateShuffleColor(){
+        if(shuffleSetting.get()){
+            binding.shuffle.setColorRes(R.color.colorAccent);
+        } else {
+            binding.shuffle.setColorRes(R.color.md_grey_500);
+        }
+    }
+
+    private void updateRepeatColor(){
+        if(repeatSetting.get()){
+            binding.repeat.setColorRes(R.color.colorAccent);
+        } else {
+            binding.repeat.setColorRes(R.color.md_grey_500);
+        }
     }
 
     private void onPlayPauseClicked() {

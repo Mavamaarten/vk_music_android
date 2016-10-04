@@ -91,7 +91,7 @@
                 android:layout_centerVertical="true"
                 android:layout_marginEnd="16dp"
                 android:padding="2dp"
-                android:src="@{ (playbackState == PlaybackState.PLAYING || playbackState == PlaybackState.PREPARING) ? @drawable/ic_pause_bitmap : @drawable/ic_play_bitmap }"/>
+                android:src="@{ (playbackState == PlaybackState.PLAYING || playbackState == PlaybackState.PREPARING) ? @drawable/ic_pause : @drawable/ic_play }"/>
 
         </RelativeLayout>
 
@@ -155,6 +155,18 @@
             android:layout_alignParentBottom="true">
 
             <com.mikepenz.iconics.view.IconicsImageView
+                android:id="@+id/repeat"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="@dimen/activity_horizontal_margin"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:padding="6dp"
+                app:iiv_color="@color/md_grey_500"
+                app:iiv_icon="gmd-repeat"/>
+
+            <com.mikepenz.iconics.view.IconicsImageView
                 android:id="@+id/previous"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
@@ -163,7 +175,7 @@
                 android:background="?attr/selectableItemBackground"
                 android:clickable="true"
                 android:padding="8dp"
-                app:iiv_color="@color/colorAccent"
+                app:iiv_color="@android:color/black"
                 app:iiv_icon="gmd-skip-previous"/>
 
             <ImageView
@@ -186,8 +198,21 @@
                 android:background="?attr/selectableItemBackground"
                 android:clickable="true"
                 android:padding="8dp"
-                app:iiv_color="@color/colorAccent"
+                app:iiv_color="@android:color/black"
                 app:iiv_icon="gmd-skip-next"/>
+
+            <com.mikepenz.iconics.view.IconicsImageView
+                android:id="@+id/shuffle"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:padding="8dp"
+                app:iiv_color="@color/md_grey_500"
+                app:iiv_icon="gmd-shuffle"/>
 
         </RelativeLayout>
 
